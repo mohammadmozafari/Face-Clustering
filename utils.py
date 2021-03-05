@@ -1,12 +1,19 @@
 import os
 import cv2
 import mtcnn
+from numpy.lib.shape_base import column_stack
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.image as matimg
 from facenet_pytorch import MTCNN
 from PIL import Image
 
 def get_images_paths(folder_address, extensions=['.jpg', '.png']):
+    """
+    Walks through a given directory, finds all images
+    in any folder and subfolder and returns the list of
+    paths of images.
+    """
     paths = []
     for root, _, files in os.walk(folder_address):
         for f in files:
@@ -15,23 +22,25 @@ def get_images_paths(folder_address, extensions=['.jpg', '.png']):
                     paths.append(os.path.join(root, f))
                     break
     return paths
-
 class Detection:
+    """
+    A module for detecting the bounding box
+    position of faces in images.
+    """
 
-    def __init__(self, paths):
-        self.paths = paths
+    def __init__(self):
+        pass
 
-    def detect_faces(self):
-        batches = self.make_batches()
+    def detect_faces(self, paths):
+        batches = self.make_batches(paths)
         faces = self.find_bounding_boxes(batches)
+        df = pd.DataFrame(faces, columns=['image_path', 'x_from_per', 'y_from_per', 'x_to_per', 'y_to_per'])
+        df.to_csv('bounding_boxes.csv', index=False)
+        return faces
 
-        for img, a, b, c, d in faces:
-            print(img, ':', a, b, c, d)
-        # print(faces)
-
-    def make_batches(self):
+    def make_batches(self, paths):
         # TODO: Better batching imporoves performance
-        batches = [[path] for path in self.paths]
+        batches = [[path] for path in paths]
         return batches
 
     def find_bounding_boxes(self, batches, thresh=0.95):
@@ -51,8 +60,11 @@ class Detection:
             for idx, (bbox_img, prob) in enumerate(zip(bboxes_imgs, probs)):
                 for i in range(len(bbox_img)):
                     if prob[i] > thresh:
-                        detected_faces.append(
-                            (paths[idx], bbox_img[i][0]/size[0], bbox_img[i][1]/size[1], bbox_img[i][2]/size[0], bbox_img[i][3]/size[1]))
+                        x_from = int(bbox_img[i][0] * 100 / size[0])
+                        x_to = int(bbox_img[i][2] * 100 / size[0])
+                        y_from = int(bbox_img[i][1] * 100 / size[1])
+                        y_to = int(bbox_img[i][3] * 100 / size[1])
+                        detected_faces.append((paths[idx], x_from, y_from, x_to, y_to))
         return detected_faces
 
     def get_new_size(self, width, height):
@@ -60,6 +72,6 @@ class Detection:
         h = 720
         return w, h
 
-paths = get_images_paths('./data')
-d = Detection(paths)
-d.detect_faces()
+paths = get_images_paths('.\\data')
+d = Detection()
+d.detect_faces(paths)
