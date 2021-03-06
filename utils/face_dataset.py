@@ -1,6 +1,7 @@
 import cv2
 import pandas as pd
 import matplotlib.pyplot as plt
+from torch.utils.data import Dataset
 
 class FaceDataset(Dataset):
     """
