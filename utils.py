@@ -1,12 +1,12 @@
 import os
 import cv2
 import mtcnn
-from numpy.lib.shape_base import column_stack
+from PIL import Image
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.image as matimg
 from facenet_pytorch import MTCNN
-from PIL import Image
+from torch.utils.data import Dataset
 
 def get_images_paths(folder_address, extensions=['.jpg', '.png']):
     """
@@ -72,6 +72,34 @@ class Detection:
         h = 720
         return w, h
 
+class FaceDataset(Dataset):
+
+    def __init__(self, csv_file):
+        self.df = pd.read_csv(csv_file)
+
+    def __len__(self, faces):
+        return len(self.df)
+
+    # TODO: transfer to gpu for faster result
+    def __getitem__(self, index):
+        face = self.df.iloc[index]
+        path = face['image_path']
+        img = cv2.imread(path)[:, :, ::-1]
+        x_from = face['x_from_per'] * img.shape[1] // 100
+        x_to = face['x_to_per'] * img.shape[1] // 100
+        y_from = face['y_from_per'] * img.shape[0] // 100
+        y_to = face['y_to_per'] * img.shape[0] // 100
+        face = img[y_from:y_to, x_from:x_to, :]
+        face = cv2.resize(face, (112, 112))
+        plt.imshow(face)
+        plt.show()
+        return face
+
 paths = get_images_paths('.\\data')
 d = Detection()
-d.detect_faces(paths)
+faces = d.detect_faces(paths)
+print('Faces are detected')
+
+face_ds = FaceDataset('bounding_boxes.csv')
+for face in face_ds:
+    pass
