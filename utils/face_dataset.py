@@ -18,7 +18,7 @@ class FaceDataset(Dataset):
         """
         self.df = pd.read_csv(csv_file)
 
-    def __len__(self, faces):
+    def __len__(self):
         """
         Total number of faces specified in the csv file.
         """
@@ -39,6 +39,6 @@ class FaceDataset(Dataset):
         y_to = face['y_to_per'] * img.shape[0] // 100
         face = img[y_from:y_to, x_from:x_to, :]
         face = cv2.resize(face, (112, 112))
-        plt.imshow(face)
-        plt.show()
+        face = face.transpose((2, 0, 1))
+        face = ((face / 255) - 0.5).astype('float32')
         return face
