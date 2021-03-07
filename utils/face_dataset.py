@@ -40,5 +40,5 @@ class FaceDataset(Dataset):
         face = img[y_from:y_to, x_from:x_to, :]
         face = cv2.resize(face, (112, 112))
         face = face.transpose((2, 0, 1))
-        face = ((face / 255) - 0.5).astype('float32')
+        face = (face / 255).astype('float32')
         return face
