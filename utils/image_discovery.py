@@ -37,6 +37,9 @@ class ImageDiscovery:
                 if len(paths) == self.items_in_file:
                     self.save_in_csv(paths)
                     paths = []
+        if len(paths) != 0:
+            self.save_in_csv(paths)
+            paths = []
 
     def save_in_csv(self, paths):
         """

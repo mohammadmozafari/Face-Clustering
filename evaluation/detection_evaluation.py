@@ -7,7 +7,7 @@ from utils.image_discovery import ImageDiscovery
 def evaluate_detection():
 
     start = time.time()
-    discoverer = ImageDiscovery('.\\data\\temp', '.\\results\\temp_res', items_in_file=2)
+    discoverer = ImageDiscovery('.\\data\\temp', '.\\results\\temp_res2')
     discoverer.discover()
     end = time.time()
     print('It took {:.2f} seconds to find all images.'.format(end - start))
