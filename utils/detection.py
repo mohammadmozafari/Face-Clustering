@@ -1,6 +1,7 @@
 import cv2
 import pandas as pd
 from facenet_pytorch import MTCNN
+from tqdm import tqdm
 
 class Detection:
     """
@@ -8,8 +9,9 @@ class Detection:
     position of faces in images.
     """
 
-    def __init__(self, save_path):
+    def __init__(self, save_path, one_face=False):
         self.save_path = save_path
+        self.one_face = one_face
         pass
 
     def detect_faces(self, paths):
@@ -28,7 +30,7 @@ class Detection:
         # detector = mtcnn.MTCNN()
         detector = MTCNN()
         detected_faces = []
-        for paths in batches:
+        for paths in tqdm(batches):
             size = None
             imgs = []
             for path in paths:
@@ -46,6 +48,8 @@ class Detection:
                         y_from = int(bbox_img[i][1] * 100 / size[1])
                         y_to = int(bbox_img[i][3] * 100 / size[1])
                         detected_faces.append((paths[idx], x_from, y_from, x_to, y_to))
+                    if self.one_face:
+                        break
         return detected_faces
 
     def get_new_size(self, width, height):
