@@ -1,7 +1,7 @@
 import cv2
 import pandas as pd
-from facenet_pytorch import MTCNN
 from tqdm import tqdm
+from facenet_pytorch import MTCNN
 
 class Detection:
     """

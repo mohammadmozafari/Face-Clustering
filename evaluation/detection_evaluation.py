@@ -1,15 +1,17 @@
 import time
+
+from PIL.Image import Image
 from utils.detection import Detection
-from utils.utility_functions import get_images_paths
+from utils.image_discovery import ImageDiscovery
 
 def evaluate_detection():
 
     start = time.time()
-    paths = get_images_paths('./data/lfw')
+    discoverer = ImageDiscovery('.\\data\\temp', '.\\results\\temp_res', items_in_file=2)
+    discoverer.discover()
     end = time.time()
-    print(len(paths))
     print('It took {:.2f} seconds to find all images.'.format(end - start))
 
-    det = Detection('results/lfw_bounding_boxes.csv')
-    faces = det.detect_faces(paths)
-    print(len(faces))
+    # det = Detection('results/lfw_bounding_boxes.csv')
+    # faces = det.detect_faces(paths)
+    # print(len(faces))
