@@ -1,8 +1,8 @@
 import time
 
 from PIL.Image import Image
-from utils.detection import Detection
-from utils.image_discovery import ImageDiscovery
+from ..utils.detection import Detection
+from ..utils.image_discovery import ImageDiscovery
 
 def evaluate_detection():
 
