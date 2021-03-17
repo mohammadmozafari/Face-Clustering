@@ -14,9 +14,12 @@ class ImageDiscovery:
         self.save_folder = save_folder
         self.items_in_file = items_in_file
         self.extensions = extensions
-        self.current_batch = 1
+        self.current_split = 1
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
+
+        print('-----------------------')
+        print('Image discovery phase has begun...\n')
 
     def discover(self):
         """
@@ -41,13 +44,21 @@ class ImageDiscovery:
             self.save_in_csv(paths)
             paths = []
 
+        print('Image discovery phase has finished')
+        print('-----------------------')
+
     def save_in_csv(self, paths):
         """
         Saves a batch of paths in one csv file.
         """
         df = pd.DataFrame(paths, columns=['path', 'ratio_group'])
-        df.to_csv(os.path.join(self.save_folder, 'paths_{}.csv'.format(self.current_batch)), index=False)
-        self.current_batch += 1
+        print('Split {} completed. Sorting started...'.format(self.current_split))
+        df = df.sort_values(by=['ratio_group'])
+        print('Sorting done. Saving in file...')
+        df.to_csv(os.path.join(self.save_folder, 'paths_{}_{}_.csv'.format(self.current_split, len(df))), index=False)
+        print('Saving in file is done.')
+        print()
+        self.current_split += 1
 
     def get_image_size(self, image_path):
         """
