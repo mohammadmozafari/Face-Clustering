@@ -28,6 +28,7 @@ class ImageDiscovery:
         paths of images.
         """
         paths = []
+        result = []
         for root, _, files in os.walk(self.folder_address):
             for f in files:
                 for extension in self.extensions:
@@ -38,14 +39,15 @@ class ImageDiscovery:
                         paths.append((image_path, ratio_gp))
                         break
                 if len(paths) == self.items_in_file:
-                    self.save_in_csv(paths)
+                    result.append(self.save_in_csv(paths))
                     paths = []
         if len(paths) != 0:
-            self.save_in_csv(paths)
+            result.append(self.save_in_csv(paths))
             paths = []
 
         print('Image discovery phase has finished')
         print('-----------------------')
+        return result
 
     def save_in_csv(self, paths):
         """
@@ -55,10 +57,12 @@ class ImageDiscovery:
         print('Split {} completed. Sorting started...'.format(self.current_split))
         df = df.sort_values(by=['ratio_group'])
         print('Sorting done. Saving in file...')
-        df.to_csv(os.path.join(self.save_folder, 'paths_{}_{}_.csv'.format(self.current_split, len(df))), index=False)
+        save_path = os.path.join(self.save_folder, 'paths_{}_{}_.csv'.format(self.current_split, len(df)))
+        df.to_csv(save_path, index=False)
         print('Saving in file is done.')
         print()
         self.current_split += 1
+        return save_path
 
     def get_image_size(self, image_path):
         """
