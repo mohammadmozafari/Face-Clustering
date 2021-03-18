@@ -1,14 +1,15 @@
 import cv2
 import time
-import math
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from src.visualization import show_images
 from src.utils.detection import Detection
 from src.utils.image_discovery import ImageDiscovery
 
 def run_discovery(root_folder, destination_folder):
+    """
+    Run image discovery on root folder, then save
+    the results in csv files and return their paths.
+    """
     start = time.time()
     discoverer = ImageDiscovery(root_folder, destination_folder, items_in_file=5000)
     csv_files = discoverer.discover()
@@ -17,6 +18,10 @@ def run_discovery(root_folder, destination_folder):
     return csv_files
 
 def run_detection(csv_files, destination_folder):
+    """
+    Run image discovery on root folder, then save
+    the results in csv files and return their paths.
+    """
     start_detection = time.time()
     det = Detection(csv_files, destination_folder, 32, one_face=True, device='cuda:0')
     csv_files = det.detect_faces()
@@ -25,6 +30,9 @@ def run_detection(csv_files, destination_folder):
     return csv_files
 
 def show_samples(bbox_csvs, n=5):
+    """
+    Get some random samples from face bounding boxes and plot.
+    """
     faces = []
     for bbox_csv in bbox_csvs:
         df = pd.read_csv(bbox_csv)
@@ -48,12 +56,12 @@ def show_samples(bbox_csvs, n=5):
 
 # paths_files = run_discovery('.\\data\\lfw', '.\\results\\lfw_paths')
 
-# paths_files = ['.\\results\\lfw_paths\\paths_1_5000_.csv',
-#                '.\\results\\lfw_paths\\paths_2_5000_.csv',
-#                '.\\results\\lfw_paths\\paths_3_3233_.csv']
-# bbox_csvs = run_detection(paths_files, '.\\results\\lfw_bboxes')
+paths_files = ['.\\results\\lfw_paths\\paths_1_5000_.csv',
+               '.\\results\\lfw_paths\\paths_2_5000_.csv',
+               '.\\results\\lfw_paths\\paths_3_3233_.csv']
+bbox_csvs = run_detection(paths_files, '.\\results\\lfw_bboxes')
 
-bbox_csvs = ['.\\results\\lfw_bboxes\\bounding_boxes_1_5000_.csv',
-             '.\\results\\lfw_bboxes\\bounding_boxes_2_5000_.csv',
-             '.\\results\\lfw_bboxes\\bounding_boxes_3_3233_.csv']
-show_samples(bbox_csvs, n=10)
+# bbox_csvs = ['.\\results\\lfw_bboxes\\bounding_boxes_1_5000_.csv',
+#              '.\\results\\lfw_bboxes\\bounding_boxes_2_5000_.csv',
+#              '.\\results\\lfw_bboxes\\bounding_boxes_3_3233_.csv']
+# show_samples(bbox_csvs, n=10)
