@@ -19,10 +19,10 @@ def run_discovery(root_folder, destination_folder):
 def run_detection(csv_files, destination_folder):
     start_detection = time.time()
     det = Detection(csv_files, destination_folder, 32, one_face=True, device='cuda:0')
-    faces = det.detect_faces()
+    csv_files = det.detect_faces()
     end_detection = time.time()
     print('It took {:.2f} seconds to detect all faces.'.format(end_detection - start_detection))
-    return faces
+    return csv_files
 
 def show_samples(bbox_csvs, n=5):
     faces = []
@@ -51,7 +51,7 @@ def show_samples(bbox_csvs, n=5):
 # paths_files = ['.\\results\\lfw_paths\\paths_1_5000_.csv',
 #                '.\\results\\lfw_paths\\paths_2_5000_.csv',
 #                '.\\results\\lfw_paths\\paths_3_3233_.csv']
-# run_detection(paths_files, '.\\results\\lfw_bboxes')
+# bbox_csvs = run_detection(paths_files, '.\\results\\lfw_bboxes')
 
 bbox_csvs = ['.\\results\\lfw_bboxes\\bounding_boxes_1_5000_.csv',
              '.\\results\\lfw_bboxes\\bounding_boxes_2_5000_.csv',

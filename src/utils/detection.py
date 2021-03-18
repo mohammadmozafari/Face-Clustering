@@ -37,6 +37,7 @@ class Detection:
         Go through all csv files containing image paths and ratio groups.
         Detect faces in all images and write to csv files.
         """
+        result = []
         processed_images = 0
         start = time()
         for csv_file in self.csv_files:
@@ -87,18 +88,21 @@ class Detection:
                 print('Processed {} / {} images ({:.2f} seconds) ({:.2f} it/sec)'.format(processed_images, self.total_images, duration, batch_size / duration))
                 start = time()
 
-            self.save_in_csv(detected_faces)
+            result.append(self.save_in_csv(detected_faces))
         
         print('Face detection phase has finished')
         print('-----------------------')
+        return result
 
     def save_in_csv(self, faces):
         """
         Saves a batch of paths in one csv file.
         """
         df = pd.DataFrame(faces, columns=['image_path', 'x_from_per', 'y_from_per', 'x_to_per', 'y_to_per'])
-        df.to_csv(os.path.join(self.save_folder, 'bounding_boxes_{}_{}_.csv'.format(self.current_split, len(df))), index=False)
+        save_path = os.path.join(self.save_folder, 'bounding_boxes_{}_{}_.csv'.format(self.current_split, len(df)))
+        df.to_csv(save_path, index=False)
         self.current_split += 1
+        return save_path
 
     def get_new_size(self, rg):
         """
