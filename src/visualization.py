@@ -22,6 +22,9 @@ def show_images(image_list):
             j += 1
         else:
             i += 1
+
+    fig = plt.figure()
+    fig.set_size_inches(10, 8)
     plt.imshow(big_image.astype('int'))
     plt.axis('off')
     plt.show()

@@ -54,14 +54,14 @@ def show_samples(bbox_csvs, n=5):
             faces.append(face)
     show_images(faces)
 
-# paths_files = run_discovery('.\\data\\lfw', '.\\results\\lfw_paths')
+# paths_files = run_discovery('.\\data\\lfw', '.\\results\\temp_paths')
 
-paths_files = ['.\\results\\lfw_paths\\paths_1_5000_.csv',
-               '.\\results\\lfw_paths\\paths_2_5000_.csv',
-               '.\\results\\lfw_paths\\paths_3_3233_.csv']
-bbox_csvs = run_detection(paths_files, '.\\results\\lfw_bboxes')
+# paths_files = ['.\\results\\lfw_paths\\paths_1_5000_.csv',
+#                '.\\results\\lfw_paths\\paths_2_5000_.csv',
+#                '.\\results\\lfw_paths\\paths_3_3233_.csv']
+# bbox_csvs = run_detection(paths_files, '.\\results\\lfw_bboxes')
 
-# bbox_csvs = ['.\\results\\lfw_bboxes\\bounding_boxes_1_5000_.csv',
-#              '.\\results\\lfw_bboxes\\bounding_boxes_2_5000_.csv',
-#              '.\\results\\lfw_bboxes\\bounding_boxes_3_3233_.csv']
-# show_samples(bbox_csvs, n=10)
+bbox_csvs = ['.\\results\\lfw_bboxes\\bounding_boxes_1_5000_.csv',
+             '.\\results\\lfw_bboxes\\bounding_boxes_2_5000_.csv',
+             '.\\results\\lfw_bboxes\\bounding_boxes_3_3233_.csv']
+show_samples(bbox_csvs, n=10)
