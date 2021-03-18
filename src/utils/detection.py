@@ -18,7 +18,7 @@ class Detection:
         self.one_face = one_face
         self.csv_files = csv_files
         self.preferred_batch_size = preferred_batch_size
-        self.detector = MTCNN(device=device)
+        self.detector = MTCNN(select_largest=False, device=device)
         self.current_split = 1
         self.H = default_height
 
@@ -32,7 +32,7 @@ class Detection:
         print('-----------------------')
         print('Face detection phase has begun...\n')
 
-    def detect_faces(self, thresh=0.95):
+    def detect_faces(self, thresh=0.99):
         """
         Go through all csv files containing image paths and ratio groups.
         Detect faces in all images and write to csv files.
@@ -65,18 +65,21 @@ class Detection:
 
                 # detect faces in image batch and save in a list
                 bboxes_imgs, probs = self.detector.detect(imgs)
+
                 for idx, (bbox_img, prob) in enumerate(zip(bboxes_imgs, probs)):
+
                     if bbox_img is None:
                         continue
+                    if self.one_face:
+                        bbox_img = bbox_img[:1]
+                    else:
+                        bbox_img = bbox_img[prob >= thresh]
                     for i in range(len(bbox_img)):
-                        if prob[i] > thresh:
-                            x_from = int(bbox_img[i][0] * 100 / size[0])
-                            x_to = int(bbox_img[i][2] * 100 / size[0])
-                            y_from = int(bbox_img[i][1] * 100 / size[1])
-                            y_to = int(bbox_img[i][3] * 100 / size[1])
-                            detected_faces.append((image_paths.iloc[position+idx]['path'], x_from, y_from, x_to, y_to))
-                        if self.one_face:
-                            break
+                        x_from = int(bbox_img[i][0] * 100 / size[0])
+                        x_to = int(bbox_img[i][2] * 100 / size[0])
+                        y_from = int(bbox_img[i][1] * 100 / size[1])
+                        y_to = int(bbox_img[i][3] * 100 / size[1])
+                        detected_faces.append((image_paths.iloc[position+idx]['path'], x_from, y_from, x_to, y_to))
                 
                 position += batch_size
                 processed_images += batch_size
