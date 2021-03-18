@@ -3,22 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 
-class BatchMaker():
-
-    def __init__(self, csv_files):
-        self.length = 0
-        self.csv_files = csv_files
-        self.current_file = 1
-        for file in csv_files:
-            self.length += int(file.split('_')[-2])
-
-    def __len__(self):
-        return self.length
-
-    def __getitem__(self, index):
-        
-        
-
 class FaceDataset(Dataset):
     """
     A class for iterating over all faces
