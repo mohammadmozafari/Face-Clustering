@@ -29,6 +29,9 @@ class Detection:
         for csv_file in csv_files:
             self.total_images += int(csv_file.split('_')[-2])
 
+        print('-----------------------')
+        print('Face detection phase has begun...\n')
+
     def detect_faces(self, thresh=0.95):
         """
         Go through all csv files containing image paths and ratio groups.
@@ -82,6 +85,9 @@ class Detection:
                 start = time()
 
             self.save_in_csv(detected_faces)
+        
+        print('Face detection phase has finished')
+        print('-----------------------')
 
     def save_in_csv(self, faces):
         """
