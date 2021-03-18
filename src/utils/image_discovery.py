@@ -91,16 +91,16 @@ class ImageDiscovery:
         """
         ratio = width / height
         gp = 1
-        if ratio < 0.357:
+        if ratio < 0.52:
             gp = -3
-        elif ratio >= 0.357 and ratio < 0.526:
+        elif ratio >= 0.52 and ratio < 0.71:
             gp = -2
-        elif ratio >= 0.526 and ratio < 1:
+        elif ratio >= 0.71 and ratio < 1:
             gp = -1
-        elif ratio >= 1 and ratio < 1.9:
+        elif ratio >= 1 and ratio < 1.4:
             gp = 1
-        elif ratio >= 1.9 and ratio < 2.8:
+        elif ratio >= 1.4 and ratio < 1.9:
             gp = 2
-        elif ratio >= 2.8:
+        elif ratio >= 1.9:
             gp = 3
         return gp

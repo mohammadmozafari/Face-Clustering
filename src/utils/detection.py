@@ -104,15 +104,15 @@ class Detection:
         h = self.H
         w = 0
         if rg == -3:
-            w = int(h * 0.357)
+            w = int(h * 0.5)
         elif rg == -2:
-            w = int(h * 0.45)
+            w = int(h * 0.62)
         elif rg == -1:
-            w = int(h * 0.75)
+            w = int(h * 0.83)
         elif rg == 1:
-            w = int(h * 1.4)
+            w = int(h * 1.2)
         elif rg == 2:
-            w = int(h * 2.4)
+            w = int(h * 1.6)
         else:
-            w = int(h * 2.8)
+            w = int(h * 2)
         return w, h
