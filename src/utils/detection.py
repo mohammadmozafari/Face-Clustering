@@ -1,7 +1,7 @@
 import os
 import cv2
 import pandas as pd
-from tqdm import tqdm
+from time import time
 from facenet_pytorch import MTCNN
 
 class Detection:
@@ -10,7 +10,7 @@ class Detection:
     position of faces in images.
     """
 
-    def __init__(self, csv_files, save_folder, preferred_batch_size, one_face=False):
+    def __init__(self, csv_files, save_folder, preferred_batch_size, default_height=720, one_face=False, device='gpu'):
         """
         Initialize a detection object with given settings.
         """
@@ -18,16 +18,24 @@ class Detection:
         self.one_face = one_face
         self.csv_files = csv_files
         self.preferred_batch_size = preferred_batch_size
-        self.detector = MTCNN()
+        self.detector = MTCNN(device=device)
         self.current_split = 1
+        self.H = default_height
+
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
+
+        self.total_images = 0
+        for csv_file in csv_files:
+            self.total_images += int(csv_file.split('_')[-2])
 
     def detect_faces(self, thresh=0.95):
         """
         Go through all csv files containing image paths and ratio groups.
         Detect faces in all images and write to csv files.
         """
+        processed_images = 0
+        start = time()
         for csv_file in self.csv_files:
             image_paths = pd.read_csv(csv_file)
             detected_faces = []
@@ -45,16 +53,18 @@ class Detection:
                 imgs = []
                 size = None
                 for idx, path in image_paths.iloc[position:position+batch_size].iterrows():
-                    print(path)
                     img = cv2.imread(path['path'])[:, :, ::-1]
                     if size == None:
                         size = self.get_new_size(path['ratio_group'])
                     img = cv2.resize(img, size)
+                    # img = Image.fromarray(img)
                     imgs.append(img)
 
                 # detect faces in image batch and save in a list
                 bboxes_imgs, probs = self.detector.detect(imgs)
                 for idx, (bbox_img, prob) in enumerate(zip(bboxes_imgs, probs)):
+                    if bbox_img is None:
+                        continue
                     for i in range(len(bbox_img)):
                         if prob[i] > thresh:
                             x_from = int(bbox_img[i][0] * 100 / size[0])
@@ -64,7 +74,12 @@ class Detection:
                             detected_faces.append((image_paths.iloc[position+idx]['path'], x_from, y_from, x_to, y_to))
                         if self.one_face:
                             break
+                
                 position += batch_size
+                processed_images += batch_size
+                duration = time() - start
+                print('Processed {} / {} images ({:.2f} seconds) ({:.2f} it/sec)'.format(processed_images, self.total_images, duration, batch_size / duration))
+                start = time()
 
             self.save_in_csv(detected_faces)
 
@@ -80,18 +95,18 @@ class Detection:
         """
         Determine the size of image according to its ratio group.
         """
-        h = 720
+        h = self.H
         w = 0
         if rg == -3:
-            w = 257
+            w = int(h * 0.357)
         elif rg == -2:
-            w = 324
+            w = int(h * 0.45)
         elif rg == -1:
-            w = 550
+            w = int(h * 0.75)
         elif rg == 1:
-            w = 1000
+            w = int(h * 1.4)
         elif rg == 2:
-            w = 1728
+            w = int(h * 2.4)
         else:
-            w = 2020
+            w = int(h * 2.8)
         return w, h
