@@ -16,7 +16,7 @@ def show_images(image_list):
     big_image = np.ones((rows * 112, cols * 112, 3)) * 255
     i, j = 0, 0
     for img in image_list:
-        big_image[i*112:(i+1)*112, j*112:(j+1)*112, :] = img
+        big_image[j*112:(j+1)*112, i*112:(i+1)*112, :] = img
         if i == cols - 1:
             i = 0
             j += 1
