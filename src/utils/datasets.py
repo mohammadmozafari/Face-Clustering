@@ -33,10 +33,10 @@ class FaceDataset(Dataset):
         face = self.df.iloc[index]
         path = face['image_path']
         img = cv2.imread(path)[:, :, ::-1]
-        x_from = face['x_from_per'] * img.shape[1] // 100
-        x_to = face['x_to_per'] * img.shape[1] // 100
-        y_from = face['y_from_per'] * img.shape[0] // 100
-        y_to = face['y_to_per'] * img.shape[0] // 100
+        x_from = max(face['x_from_per'] * img.shape[1] // 100, 0)
+        x_to = min(face['x_to_per'] * img.shape[1] // 100, img.shape[1])
+        y_from = max(face['y_from_per'] * img.shape[0] // 100, 0)
+        y_to = min(face['y_to_per'] * img.shape[0] // 100, img.shape[1])
         face = img[y_from:y_to, x_from:x_to, :]
         face = cv2.resize(face, (112, 112))
         face = face.transpose((2, 0, 1))
