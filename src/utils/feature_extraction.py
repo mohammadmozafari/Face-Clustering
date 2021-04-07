@@ -44,7 +44,7 @@ class FeatureExtractor:
                     faces = faces.to(self.device)
                     vecs = self.net(faces)
                     bsize = vecs.shape[0]
-                    embeddings[at:at+bsize, :] = vecs
+                    embeddings[at:at+bsize, :] = vecs.cpu()
                     at += bsize
                     counter += bsize
                     tock = time.time()
