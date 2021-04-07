@@ -1,5 +1,6 @@
 import os
 import time
+import torch
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
@@ -13,11 +14,12 @@ class FeatureExtractor:
         Initialize a feature extractor.
         """
         self.total_images = 0
-        self.current_split = 0
+        self.current_split = 1
         self.device = device
         self.batch_size = batch_size
         self.result_folder = result_folder
-        self.net = InceptionResnetV1(pretrained='vggface2', device=device)
+        self.csv_files = csv_files
+        self.net = InceptionResnetV1(pretrained='vggface2', device=device).eval()
         for csv_file in csv_files:
             self.total_images += int(csv_file.split('_')[-2])
         if not os.path.exists(result_folder):
@@ -32,22 +34,23 @@ class FeatureExtractor:
         result = []
         tick = time.time()
         begin = time.time()
-        for csv_file in self.csv_files:
-            ds = FaceDataset(csv_file)
-            dl = DataLoader(ds, shuffle=False, batch_size=self.batch_size)
-            embeddings = np.zeros((len(ds), 512))
-            at = 0
-            for faces in dl:
-                faces = faces.to(self.device)
-                result = self.net(faces)
-                bsize = result.shape[0]
-                embeddings[at:at+bsize, :]
-                at += bsize
-                counter += bsize
-                tock = time.time()
-                print('Processed {}/{} faces. ({:.2f} faces per second)'.format(counter, self.total_images, bsize/(tock-tick)))
-                tick = time.time()
-            result.append(self.save_in_csv(embeddings))
+        with torch.no_grad():
+            for csv_file in self.csv_files:
+                ds = FaceDataset(csv_file)
+                dl = DataLoader(ds, shuffle=False, batch_size=self.batch_size)
+                embeddings = np.zeros((len(ds), 512))
+                at = 0
+                for faces in dl:
+                    faces = faces.to(self.device)
+                    vecs = self.net(faces)
+                    bsize = vecs.shape[0]
+                    embeddings[at:at+bsize, :] = vecs
+                    at += bsize
+                    counter += bsize
+                    tock = time.time()
+                    print('Processed {}/{} faces. ({:.2f} faces per second)'.format(counter, self.total_images, bsize/(tock-tick)))
+                    tick = time.time()
+                result.append(self.save_to_csv(embeddings))
         end = time.time()
         print()
         print('Average speed: {:.2f} faces per second'.format(self.total_images/(end-begin)))
@@ -60,8 +63,8 @@ class FeatureExtractor:
         Converts given numpy array to pandas
         dataframe and saves it in a csv file.
         """
-        df = pd.Dataframe(embeddings, columns=range(embeddings.shape[0]))
-        save_path = os.path.join(self.save_folder, 'features_{}_{}_.csv'.format(self.current_split, len(df)))
+        df = pd.DataFrame(embeddings, columns=range(512))
+        save_path = os.path.join(self.result_folder, 'features_{}_{}_.csv'.format(self.current_split, len(df)))
         df.to_csv(save_path, index=False)
         self.current_split += 1
         return save_path
