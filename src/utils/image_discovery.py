@@ -34,9 +34,10 @@ class ImageDiscovery:
                 for extension in self.extensions:
                     if f.endswith(extension):
                         image_path = os.path.join(root, f)
-                        width, height = self.get_image_size(image_path)
-                        ratio_gp = self.get_ratio_group(width, height)
-                        paths.append((image_path, ratio_gp))
+                        # width, height = self.get_image_size(image_path)
+                        # ratio_gp = self.get_ratio_group(width, height)
+                        # paths.append((image_path, ratio_gp))
+                        paths.append((image_path))
                         break
                 if len(paths) == self.items_in_file:
                     result.append(self.save_in_csv(paths))
@@ -53,10 +54,12 @@ class ImageDiscovery:
         """
         Saves a batch of paths in one csv file.
         """
-        df = pd.DataFrame(paths, columns=['path', 'ratio_group'])
-        print('Split {} completed. Sorting started...'.format(self.current_split))
-        df = df.sort_values(by=['ratio_group'])
-        print('Sorting done. Saving in file...')
+        # df = pd.DataFrame(paths, columns=['path', 'ratio_group'])
+        df = pd.DataFrame(paths, columns=['path'])
+        print('Split {} completed.'.format(self.current_split))
+        # print('Sorting started...')
+        # df = df.sort_values(by=['ratio_group'])
+        # print('Sorting done. Saving in file...')
         save_path = os.path.join(self.save_folder, 'paths_{}_{}_.csv'.format(self.current_split, len(df)))
         df.to_csv(save_path, index=False)
         print('Saving in file is done.')
@@ -64,43 +67,43 @@ class ImageDiscovery:
         self.current_split += 1
         return save_path
 
-    def get_image_size(self, image_path):
-        """
-        Finds out the width and height of images.
-        Some images are rotated by a tag that should be considered.  
-        """
-        size = (None, None)
-        with Image.open(image_path) as i:
-            size = i.size
-            try:
-                exif = {
-                    ExifTags.TAGS[k]: v
-                    for k, v in i._getexif().items()
-                    if k in ExifTags.TAGS
-                }
-                if exif.get("Orientation", 0) > 4:
-                    size = size[1], size[0]
-            except:
-                pass
-        return size
+    # def get_image_size(self, image_path):
+    #     """
+    #     Finds out the width and height of images.
+    #     Some images are rotated by a tag that should be considered.  
+    #     """
+    #     size = (None, None)
+    #     with Image.open(image_path) as i:
+    #         size = i.size
+    #         try:
+    #             exif = {
+    #                 ExifTags.TAGS[k]: v
+    #                 for k, v in i._getexif().items()
+    #                 if k in ExifTags.TAGS
+    #             }
+    #             if exif.get("Orientation", 0) > 4:
+    #                 size = size[1], size[0]
+    #         except:
+    #             pass
+    #     return size
 
-    def get_ratio_group(self, width, height):
-        """
-        According to image ratio assign a
-        group number for resizing images.
-        """
-        ratio = width / height
-        gp = 1
-        if ratio < 0.52:
-            gp = -3
-        elif ratio >= 0.52 and ratio < 0.71:
-            gp = -2
-        elif ratio >= 0.71 and ratio < 1:
-            gp = -1
-        elif ratio >= 1 and ratio < 1.4:
-            gp = 1
-        elif ratio >= 1.4 and ratio < 1.9:
-            gp = 2
-        elif ratio >= 1.9:
-            gp = 3
-        return gp
+    # def get_ratio_group(self, width, height):
+    #     """
+    #     According to image ratio assign a
+    #     group number for resizing images.
+    #     """
+    #     ratio = width / height
+    #     gp = 1
+    #     if ratio < 0.52:
+    #         gp = -3
+    #     elif ratio >= 0.52 and ratio < 0.71:
+    #         gp = -2
+    #     elif ratio >= 0.71 and ratio < 1:
+    #         gp = -1
+    #     elif ratio >= 1 and ratio < 1.4:
+    #         gp = 1
+    #     elif ratio >= 1.4 and ratio < 1.9:
+    #         gp = 2
+    #     elif ratio >= 1.9:
+    #         gp = 3
+    #     return gp
