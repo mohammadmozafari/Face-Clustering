@@ -41,11 +41,12 @@ class ImageDataset():
             img = cv2.resize(img, self.size)
             img = img.transpose((2, 0, 1))
             img = (img / 255).astype('float32')
-            return img
+            return img, 0, 0
 
         frame = np.zeros((self.size[0], self.size[1], 3))
         h, w, _ = img.shape
         src_ratio = w/h
+        new_h, new_w = None, None
 
         if src_ratio > self.dest_ratio:
             new_w = self.size[1]
@@ -64,7 +65,7 @@ class ImageDataset():
 
         frame = (frame / 255).astype('float32')
         frame = frame.transpose((2, 0, 1))
-        return frame
+        return frame, new_h, new_w
 
 class FaceDataset(Dataset):
     """
@@ -108,7 +109,8 @@ def test_img_ds():
 
     path = './results/diff-ratios-paths/paths_1_9_.csv'
     ds = ImageDataset(path, size=(1080, 1920), same=False)
-    for i, _ in enumerate(ds):
+    for i, (_, h, w) in enumerate(ds):
+        print(h, w)
         if i == 3:
             break
 
