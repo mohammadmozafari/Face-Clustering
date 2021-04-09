@@ -3,6 +3,8 @@ import cv2
 import pandas as pd
 from time import time
 from facenet_pytorch import MTCNN
+from torch.utils.data import DataLoader
+from src.utils.datasets import ImageDataset
 
 class Detection:
     """
@@ -10,17 +12,21 @@ class Detection:
     position of faces in images.
     """
 
-    def __init__(self, csv_files, save_folder, preferred_batch_size, default_height=720, one_face=False, device='gpu'):
+    def __init__(self, csv_files, save_folder, batch_size, one_face=False, device='cpu', mode='prob'):
         """
         Initialize a detection object with given settings.
         """
         self.save_folder = save_folder
         self.one_face = one_face
         self.csv_files = csv_files
-        self.preferred_batch_size = preferred_batch_size
-        self.detector = MTCNN(select_largest=False, device=device)
+        self.batch_size = batch_size
         self.current_split = 1
-        self.H = default_height
+        self.detector = None
+
+        if mode == 'prob' or mode == 'center':
+            self.detector = MTCNN(select_largest=False, device=device)
+        elif mode == 'size':
+            self.detector = MTCNN(select_largest=True, device=device)
 
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
@@ -40,59 +46,43 @@ class Detection:
         result = []
         processed_images = 0
         start = time()
+        detected_faces = []
         for csv_file in self.csv_files:
-            image_paths = pd.read_csv(csv_file)
-            detected_faces = []
-            position = 0
-            while position < len(image_paths):
-                
-                # determine batch size
-                batch_size = self.preferred_batch_size
-                while (position + batch_size) > len(image_paths):
-                    batch_size -= 1
-                while (image_paths.iloc[position + batch_size - 1]['ratio_group'] != image_paths.iloc[position]['ratio_group']):
-                    batch_size -= 1
-
-                # read a batch of images and resize them
-                imgs = []
-                size = None
-                for idx, path in image_paths.iloc[position:position+batch_size].iterrows():
-                    img = cv2.imread(path['path'])[:, :, ::-1]
-                    if size == None:
-                        size = self.get_new_size(path['ratio_group'])
-                    img = cv2.resize(img, size)
-                    # img = Image.fromarray(img)
-                    imgs.append(img)
-
-                # detect faces in image batch and save in a list
-                bboxes_imgs, probs = self.detector.detect(imgs)
-
-                for idx, (bbox_img, prob) in enumerate(zip(bboxes_imgs, probs)):
-
-                    if bbox_img is None:
-                        continue
-                    if self.one_face:
-                        bbox_img = bbox_img[:1]
-                    else:
-                        bbox_img = bbox_img[prob >= thresh]
-                    for i in range(len(bbox_img)):
-                        x_from = int(bbox_img[i][0] * 100 / size[0])
-                        x_to = int(bbox_img[i][2] * 100 / size[0])
-                        y_from = int(bbox_img[i][1] * 100 / size[1])
-                        y_to = int(bbox_img[i][3] * 100 / size[1])
-                        detected_faces.append((image_paths.iloc[position+idx]['path'], x_from, y_from, x_to, y_to))
-                
-                position += batch_size
-                processed_images += batch_size
-                duration = time() - start
-                print('Processed {} / {} images ({:.2f} seconds) ({:.2f} it/sec)'.format(processed_images, self.total_images, duration, batch_size / duration))
-                start = time()
-
+            ids = ImageDataset(csv_file, size=(540, 648), same=True)
+            imgs, paths, hs, ws = [], [], [], []
+            for i, (img, path, h, w) in enumerate(ids):
+                imgs.append(img)
+                paths.append(path)
+                hs.append(h)
+                ws.append(w)
+                if (len(imgs) == self.batch_size) or (i+1 == len(ids)):
+                    size = imgs[0].shape[0], imgs[0].shape[1]
+                    bboxes_imgs, probs = self.detector.detect(imgs)
+                    for idx, (bbox_img, prob) in enumerate(zip(bboxes_imgs, probs)):
+                        if bbox_img is None:
+                            continue
+                        if self.one_face:
+                            bbox_img = self.select_box(bbox_img)
+                        else:
+                            bbox_img = bbox_img[prob >= thresh]
+                        for j in range(len(bbox_img)):
+                            x_from = int((bbox_img[j][0] - (size[1] - ws[idx])/2) * 100 / ws[idx])
+                            x_to = int((bbox_img[j][2] - (size[1] - ws[idx])/2) * 100 / ws[idx])
+                            y_from = int((bbox_img[j][1] - (size[0] - hs[idx])/2) * 100 / hs[idx])
+                            y_to = int((bbox_img[j][3] - (size[0] - hs[idx])/2) * 100 / hs[idx])
+                            detected_faces.append((paths[idx], x_from, y_from, x_to, y_to))
+                    processed_images += len(imgs)
+                    duration = time() - start
+                    print('Processed {} / {} images ({:.2f} seconds) ({:.2f} it/sec)'.format(processed_images, self.total_images, duration, len(imgs) / duration))
+                    start = time()
+                    imgs, paths, hs, ws = [], [], [], []
             result.append(self.save_in_csv(detected_faces))
-        
         print('Face detection phase has finished')
         print('-----------------------')
         return result
+
+    def select_box(self, bbox_img):
+        return bbox_img[0:1]
 
     def save_in_csv(self, faces):
         """
@@ -103,23 +93,4 @@ class Detection:
         df.to_csv(save_path, index=False)
         self.current_split += 1
         return save_path
-
-    def get_new_size(self, rg):
-        """
-        Determine the size of image according to its ratio group.
-        """
-        h = self.H
-        w = 0
-        if rg == -3:
-            w = int(h * 0.5)
-        elif rg == -2:
-            w = int(h * 0.62)
-        elif rg == -1:
-            w = int(h * 0.83)
-        elif rg == 1:
-            w = int(h * 1.2)
-        elif rg == 2:
-            w = int(h * 1.6)
-        else:
-            w = int(h * 2)
-        return w, h
+        

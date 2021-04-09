@@ -12,7 +12,7 @@ def run_discovery(root_folder, destination_folder):
     the results in csv files and return their paths.
     """
     start = time.time()
-    discoverer = ImageDiscovery(root_folder, destination_folder, items_in_file=5000)
+    discoverer = ImageDiscovery(root_folder, destination_folder)
     csv_files = discoverer.discover()
     end = time.time()
     print('It took {:.2f} seconds to find all images.'.format(end - start))
@@ -24,7 +24,7 @@ def run_detection(csv_files, destination_folder):
     the results in csv files and return their paths.
     """
     start_detection = time.time()
-    det = Detection(csv_files, destination_folder, 32, one_face=True, device='cpu', default_height=540)
+    det = Detection(csv_files, destination_folder, 32, one_face=True, device='cuda:0')
     csv_files = det.detect_faces()
     end_detection = time.time()
     print('It took {:.2f} seconds to detect all faces.'.format(end_detection - start_detection))
@@ -35,7 +35,6 @@ def show_samples(bbox_csvs, n=5):
     Get some random samples from face bounding boxes and plot.
     """
     faces = []
-    # i = 1
     for bbox_csv in bbox_csvs:
         df = pd.read_csv(bbox_csv)
         samples = df.sample(n=n)
@@ -48,8 +47,6 @@ def show_samples(bbox_csvs, n=5):
             face = img[y_from:y_to, x_from:x_to, :]
             face = cv2.resize(face, (112, 112))
             faces.append(face)
-            # print(i, sample['image_path'])
-            # i += 1
     show_images(faces)
 
 def detect_one():
@@ -61,15 +58,6 @@ def detect_one():
     print(out)
     
 paths_files = run_discovery('.\\data\\lfw-subset', '.\\results\\lfw-subset-paths')
-
-# paths_files = ['.\\results\\lfw_paths\\paths_1_5000_.csv',
-#                '.\\results\\lfw_paths\\paths_2_5000_.csv',
-#                '.\\results\\lfw_paths\\paths_3_3233_.csv']
 bbox_csvs = run_detection(paths_files, '.\\results\\lfw-subset-bboxes')
-
-
-# bbox_csvs = ['.\\results\\lfw-subset-bboxes\\bounding_boxes_1_719_.csv',
-#              '.\\results\\lfw-subset-bboxes\\bounding_boxes_1_1716_.csv', ]
 show_samples(bbox_csvs, n=20)
-
 # detect_one()
