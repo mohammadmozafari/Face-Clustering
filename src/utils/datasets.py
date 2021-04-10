@@ -31,8 +31,8 @@ class ImageDataset():
 
     def __getitem__(self, index):
         """
-        Open image of the given index and crop the face part
-        according to the bounding box coordinates.
+        Open image of the given index and resize it.
+        If needed, add black pixels to keep aspect ratio intact. 
         """
         image = self.df.iloc[index]
         path = image['path']
@@ -59,6 +59,7 @@ class ImageDataset():
             pads1 = math.floor((self.size[1] - new_w)/2)
             pads2 = math.ceil((self.size[1] - new_w)/2)
             img = np.pad(img, ((0, 0), (pads1, pads2), (0, 0)), mode='constant', constant_values=0)
+
         return img, path, new_h, new_w
 
 class FaceDataset(Dataset):

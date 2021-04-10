@@ -24,7 +24,7 @@ def run_detection(csv_files, destination_folder):
     the results in csv files and return their paths.
     """
     start_detection = time.time()
-    det = Detection(csv_files, destination_folder, 32, (540, 648), one_face=True, device='cuda:0', same=True)
+    det = Detection(csv_files, destination_folder, 32, (540, 648), one_face=True, device='cuda:0', same=False)
     csv_files = det.detect_faces()
     end_detection = time.time()
     print('It took {:.2f} seconds to detect all faces.'.format(end_detection - start_detection))
@@ -59,5 +59,5 @@ def detect_one():
     
 paths_files = run_discovery('.\\data\\lfw-subset', '.\\results\\lfw-subset-paths')
 bbox_csvs = run_detection(paths_files, '.\\results\\lfw-subset-bboxes')
-show_samples(bbox_csvs, n=20)
+show_samples(bbox_csvs, n=45)
 # detect_one()

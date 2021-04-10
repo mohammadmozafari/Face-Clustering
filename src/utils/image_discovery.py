@@ -34,9 +34,6 @@ class ImageDiscovery:
                 for extension in self.extensions:
                     if f.endswith(extension):
                         image_path = os.path.join(root, f)
-                        # width, height = self.get_image_size(image_path)
-                        # ratio_gp = self.get_ratio_group(width, height)
-                        # paths.append((image_path, ratio_gp))
                         paths.append((image_path))
                         break
                 if len(paths) == self.items_in_file:
@@ -54,12 +51,8 @@ class ImageDiscovery:
         """
         Saves a batch of paths in one csv file.
         """
-        # df = pd.DataFrame(paths, columns=['path', 'ratio_group'])
         df = pd.DataFrame(paths, columns=['path'])
         print('Split {} completed.'.format(self.current_split))
-        # print('Sorting started...')
-        # df = df.sort_values(by=['ratio_group'])
-        # print('Sorting done. Saving in file...')
         save_path = os.path.join(self.save_folder, 'paths_{}_{}_.csv'.format(self.current_split, len(df)))
         df.to_csv(save_path, index=False)
         print('Saving in file is done.')
