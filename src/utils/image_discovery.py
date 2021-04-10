@@ -66,44 +66,4 @@ class ImageDiscovery:
         print()
         self.current_split += 1
         return save_path
-
-    # def get_image_size(self, image_path):
-    #     """
-    #     Finds out the width and height of images.
-    #     Some images are rotated by a tag that should be considered.  
-    #     """
-    #     size = (None, None)
-    #     with Image.open(image_path) as i:
-    #         size = i.size
-    #         try:
-    #             exif = {
-    #                 ExifTags.TAGS[k]: v
-    #                 for k, v in i._getexif().items()
-    #                 if k in ExifTags.TAGS
-    #             }
-    #             if exif.get("Orientation", 0) > 4:
-    #                 size = size[1], size[0]
-    #         except:
-    #             pass
-    #     return size
-
-    # def get_ratio_group(self, width, height):
-    #     """
-    #     According to image ratio assign a
-    #     group number for resizing images.
-    #     """
-    #     ratio = width / height
-    #     gp = 1
-    #     if ratio < 0.52:
-    #         gp = -3
-    #     elif ratio >= 0.52 and ratio < 0.71:
-    #         gp = -2
-    #     elif ratio >= 0.71 and ratio < 1:
-    #         gp = -1
-    #     elif ratio >= 1 and ratio < 1.4:
-    #         gp = 1
-    #     elif ratio >= 1.4 and ratio < 1.9:
-    #         gp = 2
-    #     elif ratio >= 1.9:
-    #         gp = 3
-    #     return gp
+        

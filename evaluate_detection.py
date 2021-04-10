@@ -24,7 +24,7 @@ def run_detection(csv_files, destination_folder):
     the results in csv files and return their paths.
     """
     start_detection = time.time()
-    det = Detection(csv_files, destination_folder, 32, one_face=True, device='cuda:0')
+    det = Detection(csv_files, destination_folder, 32, (540, 648), one_face=True, device='cuda:0', same=True)
     csv_files = det.detect_faces()
     end_detection = time.time()
     print('It took {:.2f} seconds to detect all faces.'.format(end_detection - start_detection))

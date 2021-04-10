@@ -1,4 +1,5 @@
 import cv2
+import math
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -41,26 +42,24 @@ class ImageDataset():
             img = cv2.resize(img, self.size)
             return img, path, img.shape[0], img.shape[1]
             
-        frame = np.zeros((self.size[0], self.size[1], 3))
         h, w, _ = img.shape
         src_ratio = w/h
         new_h, new_w = None, None
-
         if src_ratio > self.dest_ratio:
             new_w = self.size[1]
             new_h = int(self.size[1] / src_ratio)
             img = cv2.resize(img, (new_w, new_h))
-            s = int((self.size[0] - new_h)/2)
-            e = s + new_h
-            frame[s:e, :, :] = img
+            pads1 = math.floor((self.size[0] - new_h)/2)
+            pads2 = math.ceil((self.size[0] - new_h)/2)
+            img = np.pad(img, ((pads1, pads2), (0, 0), (0, 0)), mode='constant', constant_values=0)
         else:
             new_h = self.size[0]
             new_w = int(self.size[0] * src_ratio)
             img = cv2.resize(img, (new_w, new_h))
-            s = int((self.size[1] - new_w)/2)
-            e = s + new_w
-            frame[:, s:e, :] = img
-        return frame, path, new_h, new_w
+            pads1 = math.floor((self.size[1] - new_w)/2)
+            pads2 = math.ceil((self.size[1] - new_w)/2)
+            img = np.pad(img, ((0, 0), (pads1, pads2), (0, 0)), mode='constant', constant_values=0)
+        return img, path, new_h, new_w
 
 class FaceDataset(Dataset):
     """
@@ -106,7 +105,7 @@ def test_img_ds():
     ds = ImageDataset(path, size=(1080, 1920), same=False)
     dl = DataLoader(ds, batch_size=2, shuffle=False)
     for A in dl:
-        print(A)
+        print(A[1])
         break
 
 if __name__ == "__main__":

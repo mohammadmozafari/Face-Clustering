@@ -12,7 +12,7 @@ class Detection:
     position of faces in images.
     """
 
-    def __init__(self, csv_files, save_folder, batch_size, one_face=False, device='cpu', mode='prob'):
+    def __init__(self, csv_files, save_folder, batch_size, size, one_face=False, device='cpu', mode='prob', same=False):
         """
         Initialize a detection object with given settings.
         """
@@ -22,6 +22,8 @@ class Detection:
         self.batch_size = batch_size
         self.current_split = 1
         self.detector = None
+        self.size = size
+        self.same = same
 
         if mode == 'prob' or mode == 'center':
             self.detector = MTCNN(select_largest=False, device=device)
@@ -48,7 +50,7 @@ class Detection:
         start = time()
         detected_faces = []
         for csv_file in self.csv_files:
-            ids = ImageDataset(csv_file, size=(540, 648), same=True)
+            ids = ImageDataset(csv_file, size=self.size, same=self.same)
             imgs, paths, hs, ws = [], [], [], []
             for i, (img, path, h, w) in enumerate(ids):
                 imgs.append(img)
@@ -93,4 +95,3 @@ class Detection:
         df.to_csv(save_path, index=False)
         self.current_split += 1
         return save_path
-        
