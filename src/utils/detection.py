@@ -24,6 +24,7 @@ class Detection:
         self.detector = None
         self.size = size
         self.same = same
+        self.mode = mode
 
         if mode == 'prob' or mode == 'center':
             self.detector = MTCNN(select_largest=False, device=device)
@@ -61,6 +62,7 @@ class Detection:
                     size = imgs[0].shape[0], imgs[0].shape[1]
                     bboxes_imgs, probs = self.detector.detect(imgs)
                     for idx, (bbox_img, prob) in enumerate(zip(bboxes_imgs, probs)):
+                        bbox_img = bbox_img[prob >= thresh]
                         if bbox_img is None:
                             continue
                         if self.one_face:
@@ -84,7 +86,19 @@ class Detection:
         return result
 
     def select_box(self, bbox_img):
-        return bbox_img[0:1]
+        if self.mode == 'prob' or self.mode == 'size':
+            return bbox_img[0:1]
+        middle_x = int(self.size[1] / 2)
+        middle_y = int(self.size[0] / 2)
+        box_middle_x = ((bbox_img[:, 2] + bbox_img[:, 0]) / 2).astype(int)
+        box_middle_y = ((bbox_img[:, 3] + bbox_img[:, 1]) / 2).astype(int)
+        min_dist, bbox = -1, None
+        for i in range(bbox_img.shape[0]):
+            dist = (middle_x-box_middle_x[i]) ** 2 + (middle_y-box_middle_y[i]) ** 2
+            if dist < min_dist or min_dist == -1:
+                min_dist = dist
+                bbox = bbox_img[i:i+1, :]
+        return bbox
 
     def save_in_csv(self, faces):
         """
