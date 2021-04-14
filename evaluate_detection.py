@@ -23,11 +23,11 @@ def run_detection(csv_files, destination_folder):
     Run image discovery on root folder, then save
     the results in csv files and return their paths.
     """
-    start_detection = time.time()
-    det = Detection(csv_files, destination_folder, 32, (540, 648), one_face=True, device='cuda:0', same=False, mode='center')
+    # start_detection = time.time()
+    det = Detection(csv_files, destination_folder, 32, (250, 250), one_face=True, device='cuda:0', same=True, mode='center')
     csv_files = det.detect_faces()
-    end_detection = time.time()
-    print('It took {:.2f} seconds to detect all faces.'.format(end_detection - start_detection))
+    # end_detection = time.time()
+    # print('It took {:.2f} seconds to detect all faces.'.format(end_detection - start_detection))
     return csv_files
 
 def show_samples(bbox_csvs, n=5):
@@ -57,8 +57,8 @@ def detect_one():
     out = mtcnn.detect(img)
     print(out)
     
-
-paths_files = run_discovery('.\\data\\diff-ratios', '.\\results\\diff-ratios-paths')
-bbox_csvs = run_detection(paths_files, '.\\results\\diff-ratios-bboxes')
-# show_samples(bbox_csvs, n=10)
-# detect_one()
+if __name__ == "__main__":
+    paths_files = run_discovery('.\\data\\lfw-subset', '.\\results\\lfw-subset-paths')
+    bbox_csvs = run_detection(paths_files, '.\\results\\lfw-subset-bboxes')
+    # show_samples(['results\\lfw-subset-bboxes\\bounding_boxes_1_1525_.csv'], n=40)
+    # detect_one()

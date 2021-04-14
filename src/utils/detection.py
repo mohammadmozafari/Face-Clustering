@@ -49,39 +49,39 @@ class Detection:
         result = []
         processed_images = 0
         start = time()
+        total_start = time()
         detected_faces = []
+        
         for csv_file in self.csv_files:
             ids = ImageDataset(csv_file, size=self.size, same=self.same)
-            imgs, paths, hs, ws = [], [], [], []
-            for i, (img, path, h, w) in enumerate(ids):
-                imgs.append(img)
-                paths.append(path)
-                hs.append(h)
-                ws.append(w)
-                if (len(imgs) == self.batch_size) or (i+1 == len(ids)):
-                    size = imgs[0].shape[0], imgs[0].shape[1]
-                    bboxes_imgs, probs = self.detector.detect(imgs)
-                    for idx, (bbox_img, prob) in enumerate(zip(bboxes_imgs, probs)):
+            ldr = DataLoader(ids, batch_size=self.batch_size, shuffle=False, num_workers=2)
+            for imgs, paths, hs, ws in ldr:
+                imgs = imgs.numpy()
+                imgs = [imgs[i, :, :, :] for i in range(imgs.shape[0])]
+                size = imgs[0].shape[0], imgs[0].shape[1]
+                bboxes_imgs, probs = self.detector.detect(imgs)
+                for idx, (bbox_img, prob) in enumerate(zip(bboxes_imgs, probs)):
+                    if bbox_img is None:
+                        continue
+                    if self.one_face:
+                        bbox_img = self.select_box(bbox_img)
+                    else:
                         bbox_img = bbox_img[prob >= thresh]
-                        if bbox_img is None:
-                            continue
-                        if self.one_face:
-                            bbox_img = self.select_box(bbox_img)
-                        else:
-                            bbox_img = bbox_img[prob >= thresh]
-                        for j in range(len(bbox_img)):
-                            x_from = int((bbox_img[j][0] - (size[1] - ws[idx])/2) * 100 / ws[idx])
-                            x_to = int((bbox_img[j][2] - (size[1] - ws[idx])/2) * 100 / ws[idx])
-                            y_from = int((bbox_img[j][1] - (size[0] - hs[idx])/2) * 100 / hs[idx])
-                            y_to = int((bbox_img[j][3] - (size[0] - hs[idx])/2) * 100 / hs[idx])
-                            detected_faces.append((paths[idx], x_from, y_from, x_to, y_to))
-                    processed_images += len(imgs)
-                    duration = time() - start
-                    print('Processed {} / {} images ({:.2f} seconds) ({:.2f} it/sec)'.format(processed_images, self.total_images, duration, len(imgs) / duration))
-                    start = time()
-                    imgs, paths, hs, ws = [], [], [], []
+                    for j in range(len(bbox_img)):
+                        x_from = int((bbox_img[j][0] - (size[1] - ws[idx])/2) * 100 / ws[idx])
+                        x_to = int((bbox_img[j][2] - (size[1] - ws[idx])/2) * 100 / ws[idx])
+                        y_from = int((bbox_img[j][1] - (size[0] - hs[idx])/2) * 100 / hs[idx])
+                        y_to = int((bbox_img[j][3] - (size[0] - hs[idx])/2) * 100 / hs[idx])
+                        detected_faces.append((paths[idx], x_from, y_from, x_to, y_to))
+                processed_images += len(imgs)
+                duration = time() - start
+                print('Processed {} / {} images ({:.2f} seconds) ({:.2f} it/sec)'.format(processed_images, self.total_images, duration, len(imgs) / duration))
+                start = time()
             result.append(self.save_in_csv(detected_faces))
+
+        total_end = time()
         print('Face detection phase has finished')
+        print('It took {:.2f} seconds to detect all faces.'.format(total_end - total_start))
         print('-----------------------')
         return result
 

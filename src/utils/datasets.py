@@ -1,3 +1,6 @@
+
+# TODO: For cleaner code, instead of writing datasets this way, writh transform objects, compose them and apply them.
+
 import cv2
 import math
 import numpy as np
