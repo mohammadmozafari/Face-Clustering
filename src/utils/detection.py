@@ -1,5 +1,6 @@
 import os
 import cv2
+import numpy as np
 import pandas as pd
 from time import time
 from facenet_pytorch import MTCNN
@@ -41,7 +42,7 @@ class Detection:
         print('-----------------------')
         print('Face detection phase has begun...\n')
 
-    def detect_faces(self, thresh=0.99):
+    def detect_faces(self, thresh=0.99, num_workers=0):
         """
         Go through all csv files containing image paths and ratio groups.
         Detect faces in all images and write to csv files.
@@ -49,12 +50,11 @@ class Detection:
         result = []
         processed_images = 0
         start = time()
-        total_start = time()
         detected_faces = []
         
         for csv_file in self.csv_files:
             ids = ImageDataset(csv_file, size=self.size, same=self.same)
-            ldr = DataLoader(ids, batch_size=self.batch_size, shuffle=False, num_workers=2)
+            ldr = DataLoader(ids, batch_size=self.batch_size, shuffle=False, num_workers=num_workers)
             for imgs, paths, hs, ws in ldr:
                 imgs = imgs.numpy()
                 imgs = [imgs[i, :, :, :] for i in range(imgs.shape[0])]
@@ -78,27 +78,27 @@ class Detection:
                 print('Processed {} / {} images ({:.2f} seconds) ({:.2f} it/sec)'.format(processed_images, self.total_images, duration, len(imgs) / duration))
                 start = time()
             result.append(self.save_in_csv(detected_faces))
+            detected_faces = []
 
-        total_end = time()
         print('Face detection phase has finished')
-        print('It took {:.2f} seconds to detect all faces.'.format(total_end - total_start))
         print('-----------------------')
         return result
 
     def select_box(self, bbox_img):
+        '''
+        From all the faces detected, this function chooses
+        the face according to the class setting.
+        largest, highest probability or most centered face.
+        '''
         if self.mode == 'prob' or self.mode == 'size':
             return bbox_img[0:1]
         middle_x = int(self.size[1] / 2)
         middle_y = int(self.size[0] / 2)
         box_middle_x = ((bbox_img[:, 2] + bbox_img[:, 0]) / 2).astype(int)
         box_middle_y = ((bbox_img[:, 3] + bbox_img[:, 1]) / 2).astype(int)
-        min_dist, bbox = -1, None
-        for i in range(bbox_img.shape[0]):
-            dist = (middle_x-box_middle_x[i]) ** 2 + (middle_y-box_middle_y[i]) ** 2
-            if dist < min_dist or min_dist == -1:
-                min_dist = dist
-                bbox = bbox_img[i:i+1, :]
-        return bbox
+        dist = (middle_x-box_middle_x) ** 2 + (middle_y-box_middle_y) ** 2
+        idx = np.argmin(dist)
+        return bbox_img[idx:idx+1]
 
     def save_in_csv(self, faces):
         """
