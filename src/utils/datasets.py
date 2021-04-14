@@ -71,13 +71,16 @@ class FaceDataset(Dataset):
     specified in a csv file.
     The path of csv file is passed to the constructor. 
     """
-    def __init__(self, csv_file):
+    def __init__(self, csv_file, talk=False, face_size=(112, 112), margin=0):
         """
         Initialize dataset by reading a given csv file.
         This file is supposed to contain the bounding box
         of faces in images.
         """
         self.df = pd.read_csv(csv_file)
+        self.talk = talk
+        self.face_size = face_size
+        self.margin = margin
 
     def __len__(self):
         """
@@ -93,14 +96,16 @@ class FaceDataset(Dataset):
         face = self.df.iloc[index]
         path = face['image_path']
         img = cv2.imread(path)[:, :, ::-1]
-        x_from = max(face['x_from_per'] * img.shape[1] // 100, 0)
-        x_to = min(face['x_to_per'] * img.shape[1] // 100, img.shape[1])
-        y_from = max(face['y_from_per'] * img.shape[0] // 100, 0)
-        y_to = min(face['y_to_per'] * img.shape[0] // 100, img.shape[1])
+        x_from = max(face['x_from_per'] * img.shape[1] // 100 - self.margin, 0)
+        x_to = min(face['x_to_per'] * img.shape[1] // 100 + self.margin, img.shape[1])
+        y_from = max(face['y_from_per'] * img.shape[0] // 100 - self.margin, 0)
+        y_to = min(face['y_to_per'] * img.shape[0] // 100 + self.margin, img.shape[1])
         face = img[y_from:y_to, x_from:x_to, :]
-        face = cv2.resize(face, (112, 112))
+        face = cv2.resize(face, (self.face_size, self.face_size))
         face = face.transpose((2, 0, 1))
         face = (face / 255).astype('float32')
+        if self.talk:
+            return face, path
         return face
 
 def test_img_ds():
