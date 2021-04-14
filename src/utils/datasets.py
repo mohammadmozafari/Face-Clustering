@@ -101,7 +101,9 @@ class FaceDataset(Dataset):
         y_from = max(face['y_from_per'] * img.shape[0] // 100 - self.margin, 0)
         y_to = min(face['y_to_per'] * img.shape[0] // 100 + self.margin, img.shape[1])
         face = img[y_from:y_to, x_from:x_to, :]
-        face = cv2.resize(face, (self.face_size, self.face_size))
+        face = cv2.resize(face, (self.face_size[0], self.face_size[0]))
+        # plt.imshow(face)
+        # plt.show()
         face = face.transpose((2, 0, 1))
         face = (face / 255).astype('float32')
         if self.talk:

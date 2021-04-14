@@ -60,5 +60,5 @@ def detect_one():
 if __name__ == "__main__":
     paths_files = run_discovery('.\\data\\lfw', '.\\results\\lfw-paths')
     bbox_csvs = run_detection(paths_files, '.\\results\\lfw-bboxes')
-    # show_samples(['results\\lfw-subset-bboxes\\bounding_boxes_1_1525_.csv'], n=40)
+    show_samples(['results\\lfw-bboxes\\bounding_boxes_1_13233_.csv'], n=25)
     # detect_one()
