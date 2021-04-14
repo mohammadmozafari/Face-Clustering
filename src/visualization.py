@@ -12,11 +12,12 @@ def show_images(image_list):
     rows = math.floor(sqroot)
     while cols * rows < len(image_list):
         rows += 1
+    height, width = image_list[0].shape[0:2]
     rows = cols if (cols * cols > len(image_list)) else (cols + 1)
-    big_image = np.ones((rows * 112, cols * 112, 3)) * 255
+    big_image = np.ones((rows * height, cols * width, 3)) * 255
     i, j = 0, 0
     for img in image_list:
-        big_image[j*112:(j+1)*112, i*112:(i+1)*112, :] = img
+        big_image[j*height:(j+1)*height, i*width:(i+1)*width, :] = img
         if i == cols - 1:
             i = 0
             j += 1
