@@ -4,15 +4,17 @@ import cv2
 import torch
 import numpy as np
 import pandas as pd
+from sklearn import metrics
 import matplotlib.pyplot as plt
 from src.visualization import show_images
 from src.utils.datasets import FaceDataset
 from src.utils.feature_extraction import FeatureExtractor
 
-def extract_features():
+def lfw_extract_features():
     """
-    Goes through all faces (bounding boxes are ready from before)
+    Goes through all faces (bounding boxes are ready from before) in lfw dataset
     and passes each face to a neural network to find an embedding for it.
+    Then saves embeddings in csv files for later use.
     """
     bbox_csv_folder = './results/lfw-bboxes'
     destination_folder = './results/lfw-features'
@@ -20,10 +22,10 @@ def extract_features():
     bbox_csvs = os.listdir(bbox_csv_folder)
     bbox_csvs = [os.path.join(bbox_csv_folder, bbox_csv) for bbox_csv in bbox_csvs]
     fe = FeatureExtractor(bbox_csvs, destination_folder, device, batch_size=64, margin=0)
-    paths = fe.extract_features(num_workers=0)
+    paths = fe.extract_features(num_workers=2)
     return paths
 
-def build_data():
+def lfw_prepare_pairs():
     """
     LFW dataset has a pair dataset for testing.
     This function converts that pair dataset
@@ -57,13 +59,13 @@ def build_data():
         df = pd.DataFrame(pairs, columns=['first', 'second', 'target'])
         df.to_csv(pairs_csv_file, index=False)
     print('-----------------------')
-    return pairs_csv_file
 
-def check_mistakes(pairs_csv_file):
+def check_mistakes(threshold=1.1):
     """
     It's important to know why mistakes have happened.
     This function shows pairs of images that are falsely classified.
     """
+    pairs_csv_file = './results/pairs.csv'
     bboxes = './results/lfw-bboxes/bounding_boxes_1_13233_.csv'
     features = './results/lfw-features/features_1_13233_.csv'
     features = pd.read_csv(features).values
@@ -72,9 +74,8 @@ def check_mistakes(pairs_csv_file):
     first = features[data[:, 0]]
     second = features[data[:, 1]]
     labels = data[:, 2]
-
     diff = np.linalg.norm(first - second, axis=1)
-    preds = (diff < 1.1) * 1
+    preds = (diff < threshold) * 1
     mistakes = np.where(preds != labels)[0]
     
     print('Accuracy =', np.mean(preds == labels))
@@ -97,7 +98,49 @@ def check_mistakes(pairs_csv_file):
         img2 = cv2.resize(img2, (112, 112))
         show_images([face1, face2, img1, img2])
 
+def evaluate_on_lfw():
+    """
+    We evaluate features extracted from lfw images
+    and report best threshold, highest accuracy and area under ROC curve.
+    """
+    pairs_csv_file = './results/pairs.csv'
+    features = './results/lfw-features/features_1_13233_.csv'
+    features = pd.read_csv(features).values
+    data = pd.read_csv(pairs_csv_file).values
+
+    first = features[data[:, 0]]
+    second = features[data[:, 1]]
+    labels = data[:, 2]
+    diff = np.linalg.norm(first - second, axis=1)
+    sorted_diff = np.sort(diff)
+
+    TPRs, FPRs = [], []
+    best_accuracy = -1
+    best_threshold = None
+    for threshold in sorted_diff:        
+        preds = (diff < threshold) * 1
+        tp = preds @ labels
+        tn = (1 - preds) @ (1 - labels)
+        fp = preds @ (1 - labels)
+        fn = (1 - preds) @ labels
+        tpr = tp / (tp + fn)
+        fpr = fp / (tn + fp)
+        acc = (tp + tn) / (tp + fp + tn + fn)
+        if acc > best_accuracy:
+            best_accuracy = acc
+            best_threshold = threshold
+        TPRs.append(tpr)
+        FPRs.append(fpr)
+
+    roc_auc = metrics.auc(FPRs, TPRs)
+    print('Best threshold = {}'.format(best_threshold))
+    print('Highest accuracy = {}'.format(best_accuracy))
+    print('Area under ROC curve = {}'.format(roc_auc))
+    plt.scatter(FPRs, TPRs, s=0.1)
+    plt.show()
+
 if __name__ == "__main__":
-    extract_features()
-    # data = build_data()
-    check_mistakes('./results/pairs.csv')
+    # lfw_extract_features()
+    # lfw_prepare_pairs()
+    # check_mistakes()
+    evaluate_on_lfw()
