@@ -110,6 +110,24 @@ class FaceDataset(Dataset):
             return face, path
         return face
 
+class ImageBatch():
+
+    def __init__(self, files, batch_size=10):
+        self.cum_sizes = [0]
+        self.batch_size = batch_size
+        for file in files:
+            self.cum_sizes.append(self.cum_sizes[-1] + len(pd.read_csv(file)))
+
+    def batch(self, idx):
+        beginning = (idx - 1) * self.batch_size
+        file_number = 0
+        for cum_size in self.cum_sizes[1:]:
+            if idx >= cum_size:
+                file_number += 1
+            else:
+                break
+        return 
+
 def test_img_ds():
 
     path = './results/diff-ratios-paths/paths_1_9_.csv'

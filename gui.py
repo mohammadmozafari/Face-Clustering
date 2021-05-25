@@ -1,10 +1,19 @@
 import sys
 from PyQt5 import QtCore
 from PyQt5.QtGui import QCursor
+from src.utils.image_discovery import ImageDiscovery
+from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog
 
-from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout
+# events are defined here
+def open_folder():
+    folder = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
+    files = ImageDiscovery(folder_address=folder, save_folder='program_data').discover()
+    print(files)
 
-def create_button(icon_path, text):
+def temp():
+    print('I shit you not')
+
+def create_button(icon_path, text, fn):
     wrapper = QFrame()
     wrapper_layout = QVBoxLayout()
     wrapper.setLayout(wrapper_layout)
@@ -16,6 +25,7 @@ def create_button(icon_path, text):
         border-image: url({});
         """.format(icon_path)
     )
+    button.clicked.connect(fn)
     wrapper.setStyleSheet(
         """
         * {
@@ -67,10 +77,10 @@ class Window(QMainWindow):
             margin: 10px;
             """
         )
-        sidebar_grid.addWidget(create_button('./static/open-folder.png', 'Open Folder'), 1)
-        sidebar_grid.addWidget(create_button('./static/find-faces.png', 'Find Faces'), 2)
-        sidebar_grid.addWidget(create_button('./static/find-faces.png', 'Temp Button'), 2)
-        sidebar_grid.addWidget(create_button('./static/find-faces.png', 'Testing'), 2)
+        sidebar_grid.addWidget(create_button('./static/open-folder.png', 'Open Folder', open_folder), 1)
+        sidebar_grid.addWidget(create_button('./static/find-faces.png', 'Find Faces', temp), 2)
+        sidebar_grid.addWidget(create_button('./static/find-faces.png', 'Temp Button', temp), 2)
+        sidebar_grid.addWidget(create_button('./static/find-faces.png', 'Testing', temp), 2)
 
         content = QFrame()
         content.setStyleSheet(
