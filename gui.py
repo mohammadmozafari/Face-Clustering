@@ -8,6 +8,11 @@ from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovi
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget
 
+# ---------------------------------------------------------------------------------------------
+# ------------------------------------- Application State -------------------------------------
+
+current_tab = 1
+
 # ----------------------------------------------------------------------------------
 # ------------------------------------- Styles -------------------------------------
 
@@ -41,21 +46,28 @@ styles = """
     max-height: 30px;
 }
 
-#btn-frame1, #btn-frame2 {
-    border: 0px;
+#btn-frame1, #btn-frame2, #btn-frame3 {
     background-color: rgb(210, 210, 210);
     height: 30px;
     font-size: 18px;
 }
-#btn-frame1:hover, #btn-frame2:hover {
+#btn-frame1 {
     color: white;
     background-color: rgb(41, 38, 100);
-}
-#btn-frame1 {
     border-top-left-radius: 10px;
+    border-right: 1px solid rgb(178, 179, 180);
 }
 #btn-frame2 {
+    border-radius: 0px;
+    border-right: 1px solid rgb(178, 179, 180);
+}
+#btn-frame3 {
     border-top-right-radius: 10px;
+}
+
+#tab-frame1, #tab-frame2, #tab-frame3a {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 """
@@ -142,6 +154,53 @@ def add_animation(wrapper):
     ani.start()
     return wrapper
 
+def switch_tab(obj, tab_number):
+    def enable_btn(btn):
+        btn.setStyleSheet("""
+            color: white; 
+            background-color: rgb(41, 38, 100);
+        """)
+    def disable_btn(btn):
+        btn.setStyleSheet("""
+            color: black; 
+            background-color: rgb(210, 210, 210);
+        """)
+
+    btn1 = obj.findChild(QPushButton, "btn-frame1")
+    btn2 = obj.findChild(QPushButton, "btn-frame2")
+    btn3 = obj.findChild(QPushButton, "btn-frame3")
+    tab1 = obj.findChild(QFrame, 'tab-frame1')
+    tab2 = obj.findChild(QFrame, 'tab-frame2')
+    tab3 = obj.findChild(QFrame, 'tab-frame3')
+
+    if tab_number == 1: 
+        enable_btn(btn1)
+        disable_btn(btn2)
+        disable_btn(btn3)
+        current_tab = 1
+        tab1.show()
+        tab2.hide()
+        tab3.hide()
+
+    elif tab_number == 2:
+        disable_btn(btn1)
+        enable_btn(btn2)
+        disable_btn(btn3)
+        current_tab = 2
+        tab1.hide()
+        tab2.show()
+        tab3.hide()
+
+    elif tab_number == 3:
+        disable_btn(btn1)
+        disable_btn(btn2)
+        enable_btn(btn3)
+        current_tab = 3
+        tab1.hide()
+        tab2.hide()
+        tab3.show()
+
+
 
 # ------------------------------------------------------------------------------------
 # ------------------------------------- Main GUI -------------------------------------
@@ -191,10 +250,16 @@ class Window(QMainWindow):
         tab_head_layout.setSpacing(0)
         button_frame1 = QPushButton('Imported Images', objectName='btn-frame1')
         button_frame2 = QPushButton('Detected Faces', objectName='btn-frame2')
+        button_frame3 = QPushButton('People', objectName='btn-frame3')
+        button_frame1.clicked.connect(lambda: switch_tab(self, 1))
+        button_frame2.clicked.connect(lambda: switch_tab(self, 2))
+        button_frame3.clicked.connect(lambda: switch_tab(self, 3))
         button_frame1.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         button_frame2.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        button_frame3.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         tab_head_layout.addWidget(button_frame1)
         tab_head_layout.addWidget(button_frame2)
+        tab_head_layout.addWidget(button_frame3)
         tab_frame1 = QFrame(objectName='tab-frame1')
         tab_frame2 = QFrame(objectName='tab-frame2')
         tab_frame3 = QFrame(objectName='tab-frame3')
