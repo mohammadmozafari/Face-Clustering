@@ -8,10 +8,36 @@ from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovi
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget
 
-# TODO: Seprate all css codes (use object name as id)
-
 # ----------------------------------------------------------------------------------
 # ------------------------------------- Styles -------------------------------------
+
+styles = """
+
+#sidebar {
+    margin: 10px;
+    width: 100px;
+    height: 300px;
+}
+
+#progressbar {
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    max-height: 20px;
+    background-color: rgb(178, 179, 180);
+    border-radius: 10px;
+}
+#progressbar::chunk {
+    background-color: rgb(41, 38, 100);
+    border-radius: 8px;
+}
+
+#content {
+    background-color: white;
+    border: 2px solid red;
+}
+
+"""
 
 # ------------------------------------------------------------------------------------------
 # ------------------------------------- Event Handlers -------------------------------------
@@ -113,59 +139,27 @@ class Window(QMainWindow):
         main_frame.setLayout(grid)
 
         # Sidebar
-        sidebar = QFrame()
+        sidebar = QFrame(objectName='sidebar')
         sidebar_grid = QVBoxLayout()
         sidebar.setLayout(sidebar_grid)
-        sidebar.setStyleSheet(
-            """
-            margin: 10px;
-            width: 100px;
-            height: 300px;
-            """
-        )
         loading_section = QLabel()
-        sidebar_grid.addWidget(
-            create_button('./static/open-folder.png', 'Open Folder', lambda: open_folder(loading_section)), 1)
-        sidebar_grid.addWidget(
-            create_button('./static/find-faces.png', 'Find Faces', loading_section.clear), 2)
-        sidebar_grid.addWidget(
-            create_button('./static/find-faces.png', 'Temp Button', lambda: temp(self)), 2)
-        sidebar_grid.addWidget(
-            create_button('./static/find-faces.png', 'Testing', exit), 2)
+        buttons_info = [('./static/open-folder.png', 'Open Folder', lambda: open_folder(loading_section)),
+                       ('./static/find-faces.png', 'Find Faces', loading_section.clear),
+                       ('./static/find-faces.png', 'Temp Button', lambda: temp(self)), 
+                       ('./static/find-faces.png', 'Exit', exit)]
+        for path, title, fn in buttons_info:
+            sidebar_grid.addWidget(create_button(path, title, fn))
         sidebar_grid.addWidget(loading_section)
 
-
+        # Main section
         main_section = QFrame()
         main_section_layout = QVBoxLayout()
         main_section.setLayout(main_section_layout)
         progressbar_section = QProgressBar(minimum=0, maximum=1000, objectName='progressbar')
-        progressbar_section.setStyleSheet(
-            """
-            * {
-                color: white;
-                font-size: 18px;
-                text-align: center;
-                max-height: 20px;
-                background-color: rgb(178, 179, 180);
-                border-radius: 10px;
-            }
-            *::chunk {
-                background-color: rgb(41, 38, 100);
-                border-radius: 8px;
-            }
-            """
-        )
         progressbar_section.setValue(13)
-        content = QFrame()
-        content.setStyleSheet(
-            """
-            background-color: white;
-            border: 2px solid red;
-            """
-        )
+        content = QFrame(objectName='content')
         main_section_layout.addWidget(progressbar_section)
         main_section_layout.addWidget(content)
-
 
         grid.addWidget(sidebar, 0, 0)
         grid.addWidget(main_section, 0, 1, 1, 10)
@@ -173,6 +167,7 @@ class Window(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyleSheet(styles)
     win = Window()
     win.show()
     sys.exit(app.exec_())
