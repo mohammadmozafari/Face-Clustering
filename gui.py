@@ -34,7 +34,28 @@ styles = """
 
 #content {
     background-color: white;
-    border: 2px solid red;
+    border-radius: 10px;
+}
+
+#tab-head {
+    max-height: 30px;
+}
+
+#btn-frame1, #btn-frame2 {
+    border: 0px;
+    background-color: rgb(210, 210, 210);
+    height: 30px;
+    font-size: 18px;
+}
+#btn-frame1:hover, #btn-frame2:hover {
+    color: white;
+    background-color: rgb(41, 38, 100);
+}
+#btn-frame1 {
+    border-top-left-radius: 10px;
+}
+#btn-frame2 {
+    border-top-right-radius: 10px;
 }
 
 """
@@ -157,7 +178,32 @@ class Window(QMainWindow):
         main_section.setLayout(main_section_layout)
         progressbar_section = QProgressBar(minimum=0, maximum=1000, objectName='progressbar')
         progressbar_section.setValue(13)
+
         content = QFrame(objectName='content')
+        content_layout = QVBoxLayout()
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
+        content.setLayout(content_layout)
+        tab_head = QFrame(objectName='tab-head')
+        tab_head_layout = QHBoxLayout()
+        tab_head.setLayout(tab_head_layout)
+        tab_head_layout.setContentsMargins(0, 0, 0, 0)
+        tab_head_layout.setSpacing(0)
+        button_frame1 = QPushButton('Imported Images', objectName='btn-frame1')
+        button_frame2 = QPushButton('Detected Faces', objectName='btn-frame2')
+        button_frame1.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        button_frame2.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        tab_head_layout.addWidget(button_frame1)
+        tab_head_layout.addWidget(button_frame2)
+        tab_frame1 = QFrame(objectName='tab-frame1')
+        tab_frame2 = QFrame(objectName='tab-frame2')
+        tab_frame3 = QFrame(objectName='tab-frame3')
+        tab_frame2.hide()
+        tab_frame3.hide()
+        content_layout.addWidget(tab_head)
+        content_layout.addWidget(tab_frame1)
+        content_layout.addWidget(tab_frame2)
+        content_layout.addWidget(tab_frame3)
         main_section_layout.addWidget(progressbar_section)
         main_section_layout.addWidget(content)
 
