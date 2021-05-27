@@ -10,6 +10,9 @@ from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayo
 
 # TODO: Seprate all css codes (use object name as id)
 
+# ----------------------------------------------------------------------------------
+# ------------------------------------- Styles -------------------------------------
+
 # ------------------------------------------------------------------------------------------
 # ------------------------------------- Event Handlers -------------------------------------
 
@@ -24,8 +27,21 @@ def open_folder(loading_section):
         target=fn,
         args=(loading_section,)).start()
 
-def temp():
-    pass
+def temp(obj):
+    def fn():
+        checkbox = obj.findChild(QProgressBar, "progressbar")
+        start_value = checkbox.value()
+        for i in range(start_value, 1000):
+            time.sleep(0.1)
+            checkbox.setValue(i)
+            checkbox.repaint()
+    
+    threading.Thread(
+        target=fn
+    ).start()
+
+def exit():
+    exit()
 
 
 # ---------------------------------------------------------------------------------------------
@@ -113,16 +129,16 @@ class Window(QMainWindow):
         sidebar_grid.addWidget(
             create_button('./static/find-faces.png', 'Find Faces', loading_section.clear), 2)
         sidebar_grid.addWidget(
-            create_button('./static/find-faces.png', 'Temp Button', temp), 2)
+            create_button('./static/find-faces.png', 'Temp Button', lambda: temp(self)), 2)
         sidebar_grid.addWidget(
-            create_button('./static/find-faces.png', 'Testing', temp), 2)
+            create_button('./static/find-faces.png', 'Testing', exit), 2)
         sidebar_grid.addWidget(loading_section)
 
 
         main_section = QFrame()
         main_section_layout = QVBoxLayout()
         main_section.setLayout(main_section_layout)
-        progressbar_section = QProgressBar(minimum=0, maximum=100)
+        progressbar_section = QProgressBar(minimum=0, maximum=1000, objectName='progressbar')
         progressbar_section.setStyleSheet(
             """
             * {
@@ -130,7 +146,7 @@ class Window(QMainWindow):
                 font-size: 18px;
                 text-align: center;
                 max-height: 20px;
-                border: 1px solid rgb(41, 38, 100);
+                background-color: rgb(178, 179, 180);
                 border-radius: 10px;
             }
             *::chunk {
@@ -139,7 +155,7 @@ class Window(QMainWindow):
             }
             """
         )
-        progressbar_section.setValue(70)
+        progressbar_section.setValue(13)
         content = QFrame()
         content.setStyleSheet(
             """
