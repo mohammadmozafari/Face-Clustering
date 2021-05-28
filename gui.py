@@ -1,6 +1,8 @@
+import os
 import sys
 import math
 import time
+import shutil
 import threading
 from PyQt5 import QtCore, QtWidgets
 from src.utils.image_discovery import ImageDiscovery
@@ -10,18 +12,96 @@ from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayo
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Application State -------------------------------------
+class ProgramState():
 
-current_tab = 1
+    def __init__(self, obj):
+        self.current_tab = 1
+        self.state = 'initial'
+        self.obj = obj
+
+    def change_current_tab(self, tab):
+        self.current_tab = tab
+        print('Changed tab to {}'.format(self.current_tab))
+
+    # def __get_program_state(self):
+    #     if not os.path.exists('./program_data'):
+    #         os.mkdir('./program_data')
+    #         return 'initial'
+        
+    #     if not os.path.exists('./program_data/paths'):
+    #         if os.path.exists('./program_data/faces'):
+    #             shutil.rmtree('./program_data/faces')
+    #         if os.path.exists('./program_data/features'):
+    #             shutil.rmtree('./program_data/features')
+    #         if os.path.exists('./program_data/clusters'):
+    #             shutil.rmtree('./program_data/clusters')
+    #         return 'initial'
+
+    #     if not os.path.exists('./program_data/faces'):
+    #         if os.path.exists('./program_data/features'):
+    #             shutil.rmtree('./program_data/features')
+    #         if os.path.exists('./program_data/clusters'):
+    #             shutil.rmtree('./program_data/clusters')
+    #         return 'imported'
+        
+    #     if not os.path.exists('./program_data/features'):
+    #         if os.path.exists('./program_data/clusters'):
+    #             shutil.rmtree('./program_data/clusters')
+    #         return 'detected'
+
+    #     if not os.path.exists('./program_data/clusters'):
+    #         return 'processed'
+
+    #     return 'clustered'
 
 # ----------------------------------------------------------------------------------
 # ------------------------------------- Styles -------------------------------------
 
 styles = """
 
+#wholeWindow {
+}
+
 #sidebar {
-    margin: 10px;
     width: 100px;
     height: 300px;
+}
+
+#open-folder, #close-folder, #find-faces, #temp, #exit {
+    max-width: 100px;
+    max-height: 500px;
+    margin: 0px;
+    border: none;
+    border-radius: 10px;
+    background-color: rgb(41, 38, 100);
+    height: 120px;
+}
+#close-folder, #exit {
+    background-color: rgb(210, 0, 0);
+}
+#open-folder:hover, #find-faces:hover, #temp:hover {
+    background-color: rgb(11, 8, 70);
+}
+#close-folder:hover, #exit:hover {
+    background-color: rgb(140, 0, 0);
+}
+#open-folder-btn, #close-folder-btn, #find-faces-btn, #temp-btn, #exit-btn {
+    height: 70px;
+    background-color: transparent;
+}
+#open-folder-label, #close-folder-label, #find-faces-label, #temp-label, #exit-label {
+    font-size: 15px;
+    color: white;
+    background-color: transparent;
+}
+
+
+
+#loading-section {
+    padding-left: 10px;
+}
+
+#mainSection {
 }
 
 #progressbar {
@@ -75,16 +155,20 @@ styles = """
 # ------------------------------------------------------------------------------------------
 # ------------------------------------- Event Handlers -------------------------------------
 
-def open_folder(loading_section):
+def open_folder(obj, loading_section):
     folder = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
-    def fn(loading_section):
-        files = ImageDiscovery(folder_address=folder, save_folder='program_data').discover()
-        time.sleep(1)
-        loading_section.clear()
+    if folder == '':
+        return
     add_animation(loading_section)
     threading.Thread(
-        target=fn,
-        args=(loading_section,)).start()
+        target=find_images,
+        args=(obj, folder, loading_section)).start()
+
+def close_folder(obj):
+    open_folder_button = obj.findChild(QFrame, 'open-folder')
+    close_folder_button = obj.findChild(QFrame, 'close-folder')
+    close_folder_button.hide()
+    open_folder_button.show()
 
 def temp(obj):
     def fn():
@@ -99,57 +183,45 @@ def temp(obj):
         target=fn
     ).start()
 
-def exit():
-    exit()
-
+def exit_fn():
+    sys.exit()
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Utility functions -------------------------------------
 
-def create_button(icon_path, text, fn):
-    wrapper = QFrame()
+
+def find_images(obj, root, loading_section):
+    files = ImageDiscovery(folder_address=root, save_folder='./program_data/paths').discover()
+    open_folder_button = obj.findChild(QFrame, 'open-folder')
+    close_folder_button = obj.findChild(QFrame, 'close-folder')
+    time.sleep(1)
+    open_folder_button.hide()
+    close_folder_button.show()
+    loading_section.clear()
+
+def create_button(icon_path, text, fn, objName):
+    wrapper = QFrame(objectName=objName)
     wrapper_layout = QVBoxLayout()
     wrapper.setLayout(wrapper_layout)
-    button = QPushButton()
+    button = QPushButton(objectName='{}-btn'.format(objName))
     button.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
     button.setStyleSheet(
         """
-        background-color: transparent;
         border-image: url({});
         """.format(icon_path)
     )
     button.clicked.connect(fn)
-    wrapper.setStyleSheet(
-        """
-        * {
-            max-width: 100px;
-            max-height: 500px;
-            margin: 0px;
-            border: none;
-            border-radius: 10px;
-            background-color: white;
-            height: 120px;
-        }
-        *:hover {
-            background-color: #DDD;
-        }
-        """
-    )
-    label = QLabel(text)
+    label = QLabel(text, objectName='{}-label'.format(objName))
     label.setAlignment(QtCore.Qt.AlignCenter)
-    label.setStyleSheet(
-        """
-        background-color: transparent;
-        """
-    )
     wrapper_layout.addWidget(button, 1)
     wrapper_layout.addWidget(label, 2)
+    if objName == 'close-folder':
+        wrapper.hide()
     return wrapper
 
 def add_animation(wrapper):
     ani = QMovie('./static/loading-gif.gif')
     ani.setScaledSize(QtCore.QSize(80, 80))
-    ani.frameChanged.connect(wrapper.repaint)
     wrapper.setMovie(ani)
     ani.start()
     return wrapper
@@ -177,7 +249,6 @@ def switch_tab(obj, tab_number):
         enable_btn(btn1)
         disable_btn(btn2)
         disable_btn(btn3)
-        current_tab = 1
         tab1.show()
         tab2.hide()
         tab3.hide()
@@ -186,7 +257,6 @@ def switch_tab(obj, tab_number):
         disable_btn(btn1)
         enable_btn(btn2)
         disable_btn(btn3)
-        current_tab = 2
         tab1.hide()
         tab2.show()
         tab3.hide()
@@ -195,12 +265,25 @@ def switch_tab(obj, tab_number):
         disable_btn(btn1)
         disable_btn(btn2)
         enable_btn(btn3)
-        current_tab = 3
         tab1.hide()
         tab2.hide()
         tab3.show()
 
+    obj.program_state.change_current_tab(tab_number)
 
+def setup_empty_folder(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+        return
+    for filename in os.listdir(path):
+        file_path = os.path.join(path, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 # ------------------------------------------------------------------------------------
 # ------------------------------------- Main GUI -------------------------------------
@@ -212,28 +295,34 @@ class Window(QMainWindow):
         self.setFixedWidth(1500)
         self.setFixedHeight(700)
         self._createCentralWidget()
+        self.program_state = ProgramState(self)
 
     def _createCentralWidget(self):
-        main_frame = QFrame()
+        main_frame = QFrame(objectName='wholeWindow')
         grid = QGridLayout()
+        grid.setContentsMargins(0, 0, 0, 0)
+        grid.setSpacing(20)
         main_frame.setLayout(grid)
 
         # Sidebar
         sidebar = QFrame(objectName='sidebar')
         sidebar_grid = QVBoxLayout()
+        sidebar_grid.setContentsMargins(40, 20, 0, 40)
         sidebar.setLayout(sidebar_grid)
-        loading_section = QLabel()
-        buttons_info = [('./static/open-folder.png', 'Open Folder', lambda: open_folder(loading_section)),
-                       ('./static/find-faces.png', 'Find Faces', loading_section.clear),
-                       ('./static/find-faces.png', 'Temp Button', lambda: temp(self)), 
-                       ('./static/find-faces.png', 'Exit', exit)]
-        for path, title, fn in buttons_info:
-            sidebar_grid.addWidget(create_button(path, title, fn))
+        loading_section = QLabel(objectName='loading-section')
+        buttons_info = [('./static/open-folder.svg', 'Open Folder', lambda: open_folder(self, loading_section), 'open-folder'),
+                        ('./static/close-folder.svg', 'Close Folder', lambda: close_folder(self), 'close-folder'),
+                        ('./static/find-faces.svg', 'Find Faces', loading_section.clear, 'find-faces'),
+                        ('./static/find-faces.svg', 'Temp Button', lambda: temp(self), 'temp'), 
+                        ('./static/find-faces.svg', 'Exit', exit_fn, 'exit')]
+        for path, title, fn, objName in buttons_info:
+            sidebar_grid.addWidget(create_button(path, title, fn, objName))
         sidebar_grid.addWidget(loading_section)
 
         # Main section
-        main_section = QFrame()
+        main_section = QFrame(objectName='mainSection')
         main_section_layout = QVBoxLayout()
+        main_section_layout.setContentsMargins(0, 20, 40, 0)
         main_section.setLayout(main_section_layout)
         progressbar_section = QProgressBar(minimum=0, maximum=1000, objectName='progressbar')
         progressbar_section.setValue(13)
@@ -277,6 +366,7 @@ class Window(QMainWindow):
         self.setCentralWidget(main_frame)
 
 if __name__ == '__main__':
+    setup_empty_folder('./program_data')
     app = QApplication(sys.argv)
     app.setStyleSheet(styles)
     win = Window()
