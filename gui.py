@@ -5,10 +5,11 @@ import time
 import shutil
 import threading
 from PyQt5 import QtCore, QtWidgets
+from src.gui.styles import get_styles
 from src.utils.image_discovery import ImageDiscovery
-from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp
 from src.gui.worker_threads import TempProgressBarThread
 from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovie
+from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget
 
@@ -23,118 +24,10 @@ class ProgramState():
 
     def change_current_tab(self, tab):
         self.current_tab = tab
-        print('Changed tab to {}'.format(self.current_tab))\
-
-# ----------------------------------------------------------------------------------
-# ------------------------------------- Styles -------------------------------------
-
-styles = """
-
-#wholeWindow {
-}
-
-#sidebar {
-    width: 100px;
-    height: 300px;
-}
-
-#open-folder, #close-folder, #find-faces, #temp, #exit {
-    max-width: 100px;
-    max-height: 500px;
-    margin: 0px;
-    border: none;
-    border-radius: 10px;
-    background-color: rgb(41, 38, 100);
-    height: 120px;
-}
-#close-folder, #exit {
-    background-color: rgb(210, 0, 0);
-}
-#open-folder:hover, #find-faces:hover, #temp:hover {
-    background-color: rgb(11, 8, 70);
-}
-#close-folder:hover, #exit:hover {
-    background-color: rgb(140, 0, 0);
-}
-#open-folder-btn, #close-folder-btn, #find-faces-btn, #temp-btn, #exit-btn {
-    height: 70px;
-    background-color: transparent;
-}
-#open-folder-label, #close-folder-label, #find-faces-label, #temp-label, #exit-label {
-    font-size: 15px;
-    color: white;
-    background-color: transparent;
-}
-
-
-
-#loading-section {
-    padding-left: 10px;
-}
-
-#mainSection {
-}
-
-#progressbar {
-    color: white;
-    font-size: 18px;
-    text-align: center;
-    max-height: 20px;
-    background-color: rgb(178, 179, 180);
-    border-radius: 10px;
-}
-#progressbar::chunk {
-    background-color: rgb(41, 38, 100);
-    border-radius: 8px;
-}
-
-#content {
-    background-color: white;
-    border-radius: 10px;
-}
-
-#tab-head {
-    max-height: 30px;
-}
-
-#btn-frame1, #btn-frame2, #btn-frame3 {
-    background-color: rgb(210, 210, 210);
-    height: 30px;
-    font-size: 18px;
-}
-#btn-frame1 {
-    color: white;
-    background-color: rgb(41, 38, 100);
-    border-top-left-radius: 10px;
-    border-right: 1px solid rgb(178, 179, 180);
-}
-#btn-frame2 {
-    border-radius: 0px;
-    border-right: 1px solid rgb(178, 179, 180);
-}
-#btn-frame3 {
-    border-top-right-radius: 10px;
-}
-
-#tab-frame1, #tab-frame2, #tab-frame3a {
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-
-"""
+        print('Changed tab to {}'.format(self.current_tab))
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Utility functions -------------------------------------
-
-
-def find_images(obj, root, loading_section):
-    files = ImageDiscovery(folder_address=root, save_folder='./program_data/paths').discover()
-    open_folder_button = obj.findChild(QFrame, 'open-folder')
-    close_folder_button = obj.findChild(QFrame, 'close-folder')
-    time.sleep(1)
-    open_folder_button.hide()
-    close_folder_button.show()
-    loading_section.clear()
 
 def create_button(icon_path, text, fn, objName):
     wrapper = QFrame(objectName=objName)
@@ -155,51 +48,6 @@ def create_button(icon_path, text, fn, objName):
     if objName == 'close-folder':
         wrapper.hide()
     return wrapper
-
-def switch_tab(obj, tab_number):
-    def enable_btn(btn):
-        btn.setStyleSheet("""
-            color: white; 
-            background-color: rgb(41, 38, 100);
-        """)
-    def disable_btn(btn):
-        btn.setStyleSheet("""
-            color: black; 
-            background-color: rgb(210, 210, 210);
-        """)
-
-    btn1 = obj.findChild(QPushButton, "btn-frame1")
-    btn2 = obj.findChild(QPushButton, "btn-frame2")
-    btn3 = obj.findChild(QPushButton, "btn-frame3")
-    tab1 = obj.findChild(QFrame, 'tab-frame1')
-    tab2 = obj.findChild(QFrame, 'tab-frame2')
-    tab3 = obj.findChild(QFrame, 'tab-frame3')
-
-    if tab_number == 1: 
-        enable_btn(btn1)
-        disable_btn(btn2)
-        disable_btn(btn3)
-        tab1.show()
-        tab2.hide()
-        tab3.hide()
-
-    elif tab_number == 2:
-        disable_btn(btn1)
-        enable_btn(btn2)
-        disable_btn(btn3)
-        tab1.hide()
-        tab2.show()
-        tab3.hide()
-
-    elif tab_number == 3:
-        disable_btn(btn1)
-        disable_btn(btn2)
-        enable_btn(btn3)
-        tab1.hide()
-        tab2.hide()
-        tab3.show()
-
-    obj.program_state.change_current_tab(tab_number)
 
 def setup_empty_folder(path):
     if not os.path.exists(path):
@@ -298,7 +146,7 @@ class Window(QMainWindow):
 if __name__ == '__main__':
     setup_empty_folder('./program_data')
     app = QApplication(sys.argv)
-    app.setStyleSheet(styles)
+    app.setStyleSheet(get_styles())
     win = Window()
     win.show()
     sys.exit(app.exec_())
