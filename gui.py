@@ -6,6 +6,8 @@ import shutil
 import threading
 from PyQt5 import QtCore, QtWidgets
 from src.utils.image_discovery import ImageDiscovery
+from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp
+from src.gui.worker_threads import TempProgressBarThread
 from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovie
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget
@@ -21,38 +23,7 @@ class ProgramState():
 
     def change_current_tab(self, tab):
         self.current_tab = tab
-        print('Changed tab to {}'.format(self.current_tab))
-
-    # def __get_program_state(self):
-    #     if not os.path.exists('./program_data'):
-    #         os.mkdir('./program_data')
-    #         return 'initial'
-        
-    #     if not os.path.exists('./program_data/paths'):
-    #         if os.path.exists('./program_data/faces'):
-    #             shutil.rmtree('./program_data/faces')
-    #         if os.path.exists('./program_data/features'):
-    #             shutil.rmtree('./program_data/features')
-    #         if os.path.exists('./program_data/clusters'):
-    #             shutil.rmtree('./program_data/clusters')
-    #         return 'initial'
-
-    #     if not os.path.exists('./program_data/faces'):
-    #         if os.path.exists('./program_data/features'):
-    #             shutil.rmtree('./program_data/features')
-    #         if os.path.exists('./program_data/clusters'):
-    #             shutil.rmtree('./program_data/clusters')
-    #         return 'imported'
-        
-    #     if not os.path.exists('./program_data/features'):
-    #         if os.path.exists('./program_data/clusters'):
-    #             shutil.rmtree('./program_data/clusters')
-    #         return 'detected'
-
-    #     if not os.path.exists('./program_data/clusters'):
-    #         return 'processed'
-
-    #     return 'clustered'
+        print('Changed tab to {}'.format(self.current_tab))\
 
 # ----------------------------------------------------------------------------------
 # ------------------------------------- Styles -------------------------------------
@@ -152,40 +123,6 @@ styles = """
 
 """
 
-# ------------------------------------------------------------------------------------------
-# ------------------------------------- Event Handlers -------------------------------------
-
-def open_folder(obj, loading_section):
-    folder = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
-    if folder == '':
-        return
-    add_animation(loading_section)
-    threading.Thread(
-        target=find_images,
-        args=(obj, folder, loading_section)).start()
-
-def close_folder(obj):
-    open_folder_button = obj.findChild(QFrame, 'open-folder')
-    close_folder_button = obj.findChild(QFrame, 'close-folder')
-    close_folder_button.hide()
-    open_folder_button.show()
-
-def temp(obj):
-    def fn():
-        checkbox = obj.findChild(QProgressBar, "progressbar")
-        start_value = checkbox.value()
-        for i in range(start_value, 1000):
-            time.sleep(0.1)
-            checkbox.setValue(i)
-            checkbox.repaint()
-    
-    threading.Thread(
-        target=fn
-    ).start()
-
-def exit_fn():
-    sys.exit()
-
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Utility functions -------------------------------------
 
@@ -217,13 +154,6 @@ def create_button(icon_path, text, fn, objName):
     wrapper_layout.addWidget(label, 2)
     if objName == 'close-folder':
         wrapper.hide()
-    return wrapper
-
-def add_animation(wrapper):
-    ani = QMovie('./static/loading-gif.gif')
-    ani.setScaledSize(QtCore.QSize(80, 80))
-    wrapper.setMovie(ani)
-    ani.start()
     return wrapper
 
 def switch_tab(obj, tab_number):
