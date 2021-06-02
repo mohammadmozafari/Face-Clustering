@@ -32,7 +32,7 @@ def get_styles():
         background-color: transparent;
     }
     #open-folder-label, #close-folder-label, #find-faces-label, #temp-label, #exit-label {
-        font-size: 15px;
+        font-size: 14px;
         color: white;
         background-color: transparent;
     }
@@ -67,7 +67,6 @@ def get_styles():
     #tab-head {
         max-height: 30px;
     }
-
     #btn-frame1, #btn-frame2, #btn-frame3 {
         background-color: rgb(210, 210, 210);
         height: 30px;
@@ -86,11 +85,34 @@ def get_styles():
     #btn-frame3 {
         border-top-right-radius: 10px;
     }
-
     #tab-frame1, #tab-frame2, #tab-frame3a {
         border-bottom-left-radius: 10px;
         border-bottom-right-radius: 10px;
     }
+
+    #pagination-section {
+        max-height: 50px;
+        margin-bottom: 20px;
+        padding: 0px 500px;
+    }
+    #prev-btn, #next-btn {
+        font-size: 18px;
+        color: white;
+        padding: 0 5px;
+        border-radius: 5px;
+        height: 35px;
+        background-color: rgb(41, 38, 100);
+    }
+    #prev-btn:hover, #next-btn:hover {
+        background-color: rgb(11, 8, 70);
+    }
+    #page-input {
+        height: 35px;
+        border-radius: 5px;
+        max-width: 50px;
+        border: 1px solid rgb(178, 179, 180);
+    }
+
     """
 
     return styles

@@ -11,7 +11,7 @@ from src.gui.worker_threads import TempProgressBarThread
 from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovie
 from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
-from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget
+from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget, QLineEdit
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Application State -------------------------------------
@@ -136,8 +136,26 @@ class Window(QMainWindow):
         content_layout.addWidget(tab_frame1)
         content_layout.addWidget(tab_frame2)
         content_layout.addWidget(tab_frame3)
+
+        pagination = QFrame(objectName='pagination-section')
+        pagination_layout = QHBoxLayout()
+        pagination.setLayout(pagination_layout)
+        pagination_layout.setContentsMargins(0, 0, 0, 0)
+        prev_button = QPushButton('Previous Page', objectName='prev-btn')
+        next_button = QPushButton('Next Page', objectName='next-btn')
+        prev_button.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        next_button.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        page_input = QLineEdit(objectName='page-input')
+        page_input.setAlignment(QtCore.Qt.AlignCenter)
+        page_label = QLabel('/1000', objectName='page-label')
+        pagination_layout.addWidget(prev_button)
+        pagination_layout.addWidget(next_button)
+        pagination_layout.addWidget(page_input)
+        pagination_layout.addWidget(page_label)
+
         main_section_layout.addWidget(progressbar_section)
         main_section_layout.addWidget(content)
+        main_section_layout.addWidget(pagination)
 
         grid.addWidget(sidebar, 0, 0)
         grid.addWidget(main_section, 0, 1, 1, 10)
