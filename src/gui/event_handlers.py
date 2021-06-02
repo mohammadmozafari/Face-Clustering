@@ -1,8 +1,8 @@
 import sys
 from PyQt5 import QtCore
 from PyQt5.QtGui import QMovie
-from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton
 from src.gui.signal_handlers import update_progressbar, op_widget
+from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton, QLineEdit
 from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread
 
 
@@ -76,7 +76,18 @@ def switch_tab(obj, tab_number):
         tab2.hide()
         tab3.show()
 
-    obj.program_state.change_current_tab(tab_number)
+    obj.program_state.change_tab(tab_number)
+    reload_page_number(obj)
+
+def go_next(obj):
+    change_page(obj, obj.program_state.whereami()[1] + 1)
+
+def go_back(obj):
+    change_page(obj, obj.program_state.whereami()[1] - 1)
+
+def change_page(obj, page_number):
+    obj.program_state.change_page(page_number)
+    reload_page_number(obj)
 
 def add_animation(wrapper):
     ani = QMovie('./static/loading-gif.gif')
@@ -84,3 +95,7 @@ def add_animation(wrapper):
     wrapper.setMovie(ani)
     ani.start()
     return wrapper
+
+def reload_page_number(obj):
+    page_input = obj.findChild(QLineEdit, 'page-input')
+    page_input.setText('{}'.format(obj.program_state.whereami()[1]))

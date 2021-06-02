@@ -9,9 +9,9 @@ from src.gui.styles import get_styles
 from src.utils.image_discovery import ImageDiscovery
 from src.gui.worker_threads import TempProgressBarThread
 from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovie
-from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget, QLineEdit
+from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab, go_next, go_back, change_page
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Application State -------------------------------------
@@ -19,10 +19,16 @@ class ProgramState():
 
     def __init__(self, obj):
         self.current_tab = 1
-        self.state = 'initial'
+        self.tab_pages = [1, 1, 1]
         self.obj = obj
 
-    def change_current_tab(self, tab):
+    def whereami(self):
+        return self.current_tab, self.tab_pages[self.current_tab - 1]
+
+    def change_page(self, new_page):
+        self.tab_pages[self.current_tab - 1] = new_page
+
+    def change_tab(self, tab):
         self.current_tab = tab
         print('Changed tab to {}'.format(self.current_tab))
 
@@ -128,8 +134,14 @@ class Window(QMainWindow):
         tab_head_layout.addWidget(button_frame2)
         tab_head_layout.addWidget(button_frame3)
         tab_frame1 = QFrame(objectName='tab-frame1')
+        tab_frame1_layout = QGridLayout()
+        tab_frame1.setLayout(tab_frame1_layout)
         tab_frame2 = QFrame(objectName='tab-frame2')
+        tab_frame2_layout = QGridLayout()
+        tab_frame2.setLayout(tab_frame2_layout)
         tab_frame3 = QFrame(objectName='tab-frame3')
+        tab_frame3_layout = QGridLayout()
+        tab_frame3.setLayout(tab_frame3_layout)
         tab_frame2.hide()
         tab_frame3.hide()
         content_layout.addWidget(tab_head)
@@ -142,10 +154,14 @@ class Window(QMainWindow):
         pagination.setLayout(pagination_layout)
         pagination_layout.setContentsMargins(0, 0, 0, 0)
         prev_button = QPushButton('Previous Page', objectName='prev-btn')
+        prev_button.clicked.connect(lambda: go_back(self))
         next_button = QPushButton('Next Page', objectName='next-btn')
+        next_button.clicked.connect(lambda: go_next(self))
         prev_button.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         next_button.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         page_input = QLineEdit(objectName='page-input')
+        page_input.returnPressed.connect(lambda: change_page(self, int(page_input.text())))
+        page_input.setText('1')
         page_input.setAlignment(QtCore.Qt.AlignCenter)
         page_label = QLabel('/1000', objectName='page-label')
         pagination_layout.addWidget(prev_button)
