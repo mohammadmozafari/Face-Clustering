@@ -110,26 +110,36 @@ class FaceDataset(Dataset):
             return face, path
         return face
 
-class ImageBatch():
+class Pagination():
 
-    def __init__(self, files, batch_size=10):
+    def __init__(self, files, page_size=10):
         self.cum_sizes = [0]
-        self.batch_size = batch_size
-        for file in files:
-            self.cum_sizes.append(self.cum_sizes[-1] + len(pd.read_csv(file)))
+        self.page_size = page_size
+        self.files = files
+        for file_name in files:
+            self.cum_sizes.append(self.cum_sizes[-1] + int(file_name.split('_')[-2]))
 
-    def batch(self, idx):
-        beginning = (idx - 1) * self.batch_size
+    def page(self, idx):
+        beginning = (idx - 1) * self.page_size
         file_number = 0
         for cum_size in self.cum_sizes[1:]:
-            if idx >= cum_size:
+            if beginning >= cum_size:
                 file_number += 1
             else:
                 break
-        return 
+        return self.get_data(file_number, beginning - self.cum_sizes[file_number], self.page_size)
+
+    def get_data(self, file_number, index, num):
+        df = pd.read_csv(self.files[file_number])
+        if len(df) > index + num:
+            return df.iloc[index:index+num]
+        if len(self.files) == file_number + 1:
+            return df.iloc[index:]
+        remainning = num - (self.cum_sizes[file_number + 1] - self.cum_sizes[file_number] - index)
+        return df.iloc[index:].append(self.get_data(file_number+1, 0, remainning), ignore_index=True)
+        
 
 def test_img_ds():
-
     path = './results/diff-ratios-paths/paths_1_9_.csv'
     ds = ImageDataset(path, size=(1080, 1920), same=False)
     dl = DataLoader(ds, batch_size=2, shuffle=False)
@@ -137,5 +147,13 @@ def test_img_ds():
         print(A[1])
         break
 
+def test_pagination():
+    files = ['./results/lfw-paths/paths_{}_50_.csv'.format(i) for i in range(1, 265)] + [
+        './results/lfw-paths/paths_265_33_.csv']
+    pgn = Pagination(files, page_size=65)
+    x = pgn.page(204)
+    print(x)
+
 if __name__ == "__main__":
-    test_img_ds()
+    # test_img_ds()
+    test_pagination()
