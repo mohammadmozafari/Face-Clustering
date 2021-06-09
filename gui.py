@@ -12,7 +12,7 @@ from src.gui.worker_threads import TempProgressBarThread
 from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovie
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget, QLineEdit
-from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab, go_next, go_back, change_page
+from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab, go_next, go_back, change_page, detect_faces, setup_empty_folder
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Application State -------------------------------------
@@ -68,20 +68,6 @@ def create_button(icon_path, text, fn, objName):
         wrapper.hide()
     return wrapper
 
-def setup_empty_folder(path):
-    if not os.path.exists(path):
-        os.mkdir(path)
-        return
-    for filename in os.listdir(path):
-        file_path = os.path.join(path, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
-
 # ------------------------------------------------------------------------------------
 # ------------------------------------- Main GUI -------------------------------------
 class Window(QMainWindow):
@@ -93,6 +79,7 @@ class Window(QMainWindow):
         self.setFixedHeight(700)
         self._createCentralWidget()
         self.program_state = ProgramState(self)
+        self.imported_images = []
         self.selected_images = []
         self.selected_faces = []
 
@@ -114,7 +101,7 @@ class Window(QMainWindow):
         loading_section = QLabel(objectName='loading-section')
         buttons_info = [('./static/open-folder.svg', 'Open Folder', lambda: open_folder(self, loading_section), 'open-folder'),
                         ('./static/close-folder.svg', 'Close Folder', lambda: close_folder(self), 'close-folder'),
-                        ('./static/find-faces.svg', 'Find Faces', loading_section.clear, 'find-faces'),
+                        ('./static/find-faces.svg', 'Find Faces', lambda: detect_faces(self), 'find-faces'),
                         ('./static/find-faces.svg', 'Temp Button', lambda: temp(self), 'temp'), 
                         ('./static/find-faces.svg', 'Exit', exit_fn, 'exit')]
         for path, title, fn, objName in buttons_info:

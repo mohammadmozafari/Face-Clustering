@@ -3,6 +3,7 @@ import itertools
 from typing import NewType
 import numpy as np
 from PyQt5 import QtCore
+from src.utils.detection import Detection
 from src.utils.image_discovery import ImageDiscovery
 from PyQt5.QtWidgets import QProgressBar, QFrame, QLabel, QMainWindow, QGridLayout
 
@@ -38,6 +39,22 @@ class TempProgressBarThread(QtCore.QThread):
         for i in range(start_value, 1000):
             time.sleep(0.1)
             self.sig.emit(self.obj, i)
+
+class FaceDetectionThread(QtCore.QThread):
+    
+    sig = QtCore.pyqtSignal(QMainWindow, int)
+    finish = QtCore.pyqtSignal(QMainWindow, list)
+    
+    def __init__(self, obj, csv_files, parent=None):
+        QtCore.QThread.__init__(self, parent)
+        self.obj = obj
+        self.csv_files = csv_files
+
+    def run(self):
+        progressbar = self.obj.findChild(QProgressBar, "progressbar")
+        det = Detection(self.csv_files, './program_data/faces', 32, (250, 250), device='cuda:0', same=False)
+        face_files = det.detect_faces(num_workers=2)
+        self.finish.emit(self.obj, face_files)
 
 # class PrepareImageThread(QtCore.QThread):
 

@@ -1,8 +1,10 @@
+import os
 import sys
+import shutil
 from PyQt5 import QtCore
 from PyQt5.QtGui import QCursor, QMovie, QPixmap
-from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread
 from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton, QLineEdit, QProgressBar, QLabel
+from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread, FaceDetectionThread
 
 # ------------------------------------------ EVENT HANDLERS ------------------------------------------
 def open_folder(obj, loading_section):
@@ -10,11 +12,11 @@ def open_folder(obj, loading_section):
     if folder == '':
         return
     add_animation(loading_section)
-    obj.t = ImageDiscoveryThread(obj, folder)
-    obj.t.sig.connect(op_widget)
-    obj.t.finish.connect(show_page1)
-    obj.t.daemon = True
-    obj.t.start()
+    obj.t1 = ImageDiscoveryThread(obj, folder)
+    obj.t1.sig.connect(op_widget)
+    obj.t1.finish.connect(show_page1)
+    obj.t1.daemon = True
+    obj.t1.start()
 
 def close_folder(obj):
     open_folder_button = obj.findChild(QFrame, 'open-folder')
@@ -27,6 +29,15 @@ def close_folder(obj):
     obj.program_state.deactivate_tab(2)
     obj.program_state.deactivate_tab(3)
     switch_tab(obj, 1)
+    setup_empty_folder()
+
+def detect_faces(obj):
+    csv_files = obj.imported_images
+    obj.t2 = FaceDetectionThread(obj, csv_files)
+    obj.t2.sig.connect(lambda: print('fuck'))
+    obj.t2.finish.connect(lambda: print('shit'))
+    obj.t2.daemon = True
+    obj.t2.start()
 
 def exit_fn():
     sys.exit()
@@ -142,6 +153,7 @@ def op_widget(obj, type, name, op):
 
 def show_page1(obj, files):
     obj.create_first_paginator(files)
+    obj.imported_images = files
     page_label = obj.findChild(QLabel, 'page-label')
     page_label.setText('/{}'.format(obj.pg1.total_pages()))
     obj.program_state.activate_tab(1)
@@ -168,3 +180,17 @@ def clear_layout(layout):
         w = item.widget()
         if w:
             w.deleteLater()
+
+def setup_empty_folder(path='./program_data'):
+    if not os.path.exists(path):
+        os.mkdir(path)
+        return
+    for filename in os.listdir(path):
+        file_path = os.path.join(path, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
