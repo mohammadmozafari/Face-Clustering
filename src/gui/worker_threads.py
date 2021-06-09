@@ -23,6 +23,7 @@ class ImageDiscoveryThread(QtCore.QThread):
         self.sig.emit(self.obj, QFrame, 'open-folder', 'hide')
         self.sig.emit(self.obj, QFrame, 'close-folder', 'show')
         self.sig.emit(self.obj, QFrame, 'loading-section', 'clear')
+        self.sig.emit(self.obj, QFrame, 'find-faces', 'show')
         self.finish.emit(self.obj, files)
 
 class TempProgressBarThread(QtCore.QThread):

@@ -21,8 +21,12 @@ def open_folder(obj, loading_section):
 def close_folder(obj):
     open_folder_button = obj.findChild(QFrame, 'open-folder')
     close_folder_button = obj.findChild(QFrame, 'close-folder')
+    find_faces = obj.findChild(QFrame, 'find-faces')
+    pbar = obj.findChild(QProgressBar, 'progressbar')
     close_folder_button.hide()
     open_folder_button.show()
+    find_faces.hide()
+    pbar.hide()
     tab_frame1 = obj.findChild(QFrame, 'tab-frame1')
     clear_layout(tab_frame1.layout())
     obj.program_state.deactivate_tab(1)
@@ -33,6 +37,8 @@ def close_folder(obj):
 
 def detect_faces(obj):
     csv_files = obj.imported_images
+    pbar = obj.findChild(QProgressBar, 'progressbar')
+    pbar.show()
     obj.t2 = FaceDetectionThread(obj, csv_files)
     obj.t2.sig.connect(update_progressbar)
     obj.t2.finish.connect(lambda: print('shit'))

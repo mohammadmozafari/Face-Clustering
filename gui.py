@@ -64,7 +64,7 @@ def create_button(icon_path, text, fn, objName):
     label.setAlignment(QtCore.Qt.AlignCenter)
     wrapper_layout.addWidget(button, 1)
     wrapper_layout.addWidget(label, 2)
-    if objName == 'close-folder':
+    if objName == 'close-folder' or objName == 'find-faces':
         wrapper.hide()
     return wrapper
 
@@ -115,6 +115,7 @@ class Window(QMainWindow):
         main_section.setLayout(main_section_layout)
         progressbar_section = QProgressBar(minimum=0, maximum=1000, objectName='progressbar')
         progressbar_section.setValue(13)
+        progressbar_section.hide()
 
         content = QFrame(objectName='content')
         content_layout = QVBoxLayout()
