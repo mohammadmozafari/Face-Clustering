@@ -93,9 +93,11 @@ class Window(QMainWindow):
         self.setFixedHeight(700)
         self._createCentralWidget()
         self.program_state = ProgramState(self)
+        self.selected_images = []
+        self.selected_faces = []
 
     def create_first_paginator(self, files):
-        self.pg1 = Pagination(files, page_size=20) 
+        self.pg1 = Pagination(files, page_size=15) 
 
     def _createCentralWidget(self):
         main_frame = QFrame(objectName='wholeWindow')

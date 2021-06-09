@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtCore
-from PyQt5.QtGui import QMovie
+from PyQt5.QtGui import QCursor, QMovie, QPixmap
 from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread
 from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton, QLineEdit, QProgressBar, QLabel
 
@@ -104,20 +104,27 @@ def change_page(obj, page_number):
         tab_frame1_layout = tab_frame1.layout()
         clear_layout(tab_frame1_layout)
         for i, row in items.iterrows():
-            y = QLabel('HI{}'.format(i))
+            img = QPixmap(row['path'])
+            img = img.scaled(200, 200, QtCore.Qt.KeepAspectRatio)
+            y = QLabel()
+            y.setAlignment(QtCore.Qt.AlignCenter)
+            y.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+            y.setPixmap(img)
+            # y.installEventFilter()
+            # y.mousePressEvent = image_clicked
             tab_frame1_layout.addWidget(y, i / 5, i % 5)
 
     elif obj.program_state.whereami()[0] == 2:
         pass
 
-def clear_layout(layout):
-    while layout.count() > 0:
-        item = layout.takeAt(0)
-        if not item:
-            continue
-        w = item.widget()
-        if w:
-            w.deleteLater()
+# def image_clicked(event):
+#     print(event.button())
+
+# def select_image(obj, name):
+#     obj.selected_images.append(name)
+
+# def unselect_image(obj, name):
+#     pass
 
 # ------------------------------------------ SLOTS ------------------------------------------
 def update_progressbar(obj, value):
@@ -152,3 +159,12 @@ def add_animation(wrapper):
 def reload_page_number(obj):
     page_input = obj.findChild(QLineEdit, 'page-input')
     page_input.setText('{}'.format(obj.program_state.whereami()[1]))
+
+def clear_layout(layout):
+    while layout.count() > 0:
+        item = layout.takeAt(0)
+        if not item:
+            continue
+        w = item.widget()
+        if w:
+            w.deleteLater()
