@@ -119,6 +119,9 @@ class Pagination():
         for file_name in files:
             self.cum_sizes.append(self.cum_sizes[-1] + int(file_name.split('_')[-2]))
 
+    def total_pages(self):
+        return math.ceil(self.cum_sizes[-1] / self.page_size)
+
     def page(self, idx):
         beginning = (idx - 1) * self.page_size
         file_number = 0

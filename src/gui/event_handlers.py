@@ -1,11 +1,10 @@
 import sys
 from PyQt5 import QtCore
 from PyQt5.QtGui import QMovie
-from src.gui.signal_handlers import update_progressbar, op_widget
-from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton, QLineEdit
 from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread
+from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton, QLineEdit, QProgressBar, QLabel
 
-
+# ------------------------------------------ EVENT HANDLERS ------------------------------------------
 def open_folder(obj, loading_section):
     folder = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
     if folder == '':
@@ -13,6 +12,7 @@ def open_folder(obj, loading_section):
     add_animation(loading_section)
     obj.t = ImageDiscoveryThread(obj, folder)
     obj.t.sig.connect(op_widget)
+    obj.t.finish.connect(show_page1)
     obj.t.daemon = True
     obj.t.start()
 
@@ -86,9 +86,56 @@ def go_back(obj):
     change_page(obj, obj.program_state.whereami()[1] - 1)
 
 def change_page(obj, page_number):
-    obj.program_state.change_page(page_number)
-    reload_page_number(obj)
+    current_tab, _ = obj.program_state.whereami()
+    if current_tab == 1:
+        if page_number > obj.pg1.total_pages() or page_number < 1:
+            print('Page out of bound')
+            return
+        obj.program_state.change_page(page_number)
+        reload_page_number(obj)
+        items = obj.pg1.page(page_number)
+        tab_frame1 = obj.findChild(QFrame, 'tab-frame1')
+        tab_frame1_layout = tab_frame1.layout()
+        clear_layout(tab_frame1_layout)
+        for i, row in items.iterrows():
+            y = QLabel('HI{}'.format(i))
+            tab_frame1_layout.addWidget(y, i / 5, i % 5)
 
+    elif obj.program_state.whereami()[0] == 2:
+        pass
+
+def clear_layout(layout):
+    while layout.count() > 0:
+        item = layout.takeAt(0)
+        if not item:
+            continue
+        w = item.widget()
+        if w:
+            w.deleteLater()
+
+# ------------------------------------------ SLOTS ------------------------------------------
+def update_progressbar(obj, value):
+    checkbox = obj.findChild(QProgressBar, "progressbar")
+    checkbox.setValue(value)
+
+def op_widget(obj, type, name, op):
+    widget = obj.findChild(type, name)
+    if op == 'hide':
+        widget.hide()
+    elif op == 'show':
+        widget.show()
+    elif op == 'clear':
+        widget.clear()
+
+def show_page1(obj, files):
+    obj.create_first_paginator(files)
+    page_label = obj.findChild(QLabel, 'page-label')
+    page_label.setText('/{}'.format(obj.pg1.total_pages()))
+    obj.program_state.activate_tab(1)
+    switch_tab(obj, 1)
+    change_page(obj, 1)
+
+# ------------------------------------------ UTILS ------------------------------------------
 def add_animation(wrapper):
     ani = QMovie('./static/loading-gif.gif')
     ani.setScaledSize(QtCore.QSize(80, 80))

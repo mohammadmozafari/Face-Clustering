@@ -6,6 +6,7 @@ import shutil
 import threading
 from PyQt5 import QtCore, QtWidgets
 from src.gui.styles import get_styles
+from src.utils.datasets import Pagination
 from src.utils.image_discovery import ImageDiscovery
 from src.gui.worker_threads import TempProgressBarThread
 from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovie
@@ -20,6 +21,7 @@ class ProgramState():
     def __init__(self, obj):
         self.current_tab = 1
         self.tab_pages = [1, 1, 1]
+        self.active_tabs = [False, False, False]
         self.obj = obj
 
     def whereami(self):
@@ -31,6 +33,14 @@ class ProgramState():
     def change_tab(self, tab):
         self.current_tab = tab
         print('Changed tab to {}'.format(self.current_tab))
+        pg_section = self.obj.findChild(QFrame, 'pagination-section')
+        if self.active_tabs[self.current_tab - 1]:
+            pg_section.show()
+        else:
+            pg_section.hide()
+
+    def activate_tab(self, tab):
+        self.active_tabs[tab - 1] = True
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Utility functions -------------------------------------
@@ -80,6 +90,9 @@ class Window(QMainWindow):
         self.setFixedHeight(700)
         self._createCentralWidget()
         self.program_state = ProgramState(self)
+
+    def create_first_paginator(self, files):
+        self.pg1 = Pagination(files, page_size=20) 
 
     def _createCentralWidget(self):
         main_frame = QFrame(objectName='wholeWindow')
@@ -168,6 +181,7 @@ class Window(QMainWindow):
         pagination_layout.addWidget(next_button)
         pagination_layout.addWidget(page_input)
         pagination_layout.addWidget(page_label)
+        pagination.hide()
 
         main_section_layout.addWidget(progressbar_section)
         main_section_layout.addWidget(content)
