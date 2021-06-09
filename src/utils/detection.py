@@ -42,7 +42,7 @@ class Detection:
         print('-----------------------')
         print('Face detection phase has begun...\n')
 
-    def detect_faces(self, thresh=0.99, num_workers=0):
+    def detect_faces(self, thresh=0.99, num_workers=0, gui_params=None):
         """
         Go through all csv files containing image paths and ratio groups.
         Detect faces in all images and write to csv files.
@@ -76,6 +76,8 @@ class Detection:
                 processed_images += len(imgs)
                 duration = time() - start
                 print('Processed {} / {} images ({:.2f} seconds) ({:.2f} it/sec)'.format(processed_images, self.total_images, duration, len(imgs) / duration))
+                if gui_params is not None:
+                    gui_params[1].emit(gui_params[0], int(processed_images * 1000/self.total_images))
                 start = time()
             result.append(self.save_in_csv(detected_faces))
             detected_faces = []

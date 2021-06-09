@@ -53,7 +53,7 @@ class FaceDetectionThread(QtCore.QThread):
     def run(self):
         progressbar = self.obj.findChild(QProgressBar, "progressbar")
         det = Detection(self.csv_files, './program_data/faces', 32, (250, 250), device='cuda:0', same=False)
-        face_files = det.detect_faces(num_workers=2)
+        face_files = det.detect_faces(num_workers=2, gui_params=(self.obj, self.sig))
         self.finish.emit(self.obj, face_files)
 
 # class PrepareImageThread(QtCore.QThread):

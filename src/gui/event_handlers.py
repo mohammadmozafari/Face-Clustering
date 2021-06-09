@@ -34,7 +34,7 @@ def close_folder(obj):
 def detect_faces(obj):
     csv_files = obj.imported_images
     obj.t2 = FaceDetectionThread(obj, csv_files)
-    obj.t2.sig.connect(lambda: print('fuck'))
+    obj.t2.sig.connect(update_progressbar)
     obj.t2.finish.connect(lambda: print('shit'))
     obj.t2.daemon = True
     obj.t2.start()
@@ -140,7 +140,7 @@ def change_page(obj, page_number):
 # ------------------------------------------ SLOTS ------------------------------------------
 def update_progressbar(obj, value):
     checkbox = obj.findChild(QProgressBar, "progressbar")
-    checkbox.setValue(value)
+    checkbox.setValue(max(13, value))
 
 def op_widget(obj, type, name, op):
     widget = obj.findChild(type, name)
