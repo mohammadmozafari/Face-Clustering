@@ -42,6 +42,9 @@ class ProgramState():
     def activate_tab(self, tab):
         self.active_tabs[tab - 1] = True
 
+    def deactivate_tab(self, tab):
+        self.active_tabs[tab - 1] = False
+
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Utility functions -------------------------------------
 

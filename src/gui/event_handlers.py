@@ -21,6 +21,12 @@ def close_folder(obj):
     close_folder_button = obj.findChild(QFrame, 'close-folder')
     close_folder_button.hide()
     open_folder_button.show()
+    tab_frame1 = obj.findChild(QFrame, 'tab-frame1')
+    clear_layout(tab_frame1.layout())
+    obj.program_state.deactivate_tab(1)
+    obj.program_state.deactivate_tab(2)
+    obj.program_state.deactivate_tab(3)
+    switch_tab(obj, 1)
 
 def exit_fn():
     sys.exit()
