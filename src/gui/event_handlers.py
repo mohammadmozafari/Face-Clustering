@@ -1,8 +1,10 @@
 import os
+import cv2
 import sys
 import shutil
 from PyQt5 import QtCore
-from PyQt5.QtGui import QCursor, QMovie, QPixmap
+import matplotlib.pyplot as plt
+from PyQt5.QtGui import QCursor, QMovie, QPixmap, QImage, QBrush, QPainter, QWindow
 from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton, QLineEdit, QProgressBar, QLabel
 from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread, FaceDetectionThread
 
@@ -14,7 +16,7 @@ def open_folder(obj, loading_section):
     add_animation(loading_section)
     obj.t1 = ImageDiscoveryThread(obj, folder)
     obj.t1.sig.connect(op_widget)
-    obj.t1.finish.connect(show_page1)
+    obj.t1.finish.connect(image_discovery_finsihed)
     obj.t1.daemon = True
     obj.t1.start()
 
@@ -41,7 +43,7 @@ def detect_faces(obj):
     pbar.show()
     obj.t2 = FaceDetectionThread(obj, csv_files)
     obj.t2.sig.connect(update_progressbar)
-    obj.t2.finish.connect(lambda: print('shit'))
+    obj.t2.finish.connect(detection_finished)
     obj.t2.daemon = True
     obj.t2.start()
 
@@ -101,6 +103,7 @@ def switch_tab(obj, tab_number):
 
     obj.program_state.change_tab(tab_number)
     reload_page_number(obj)
+    reload_total_pages(obj)
 
 def go_next(obj):
     change_page(obj, obj.program_state.whereami()[1] + 1)
@@ -132,7 +135,24 @@ def change_page(obj, page_number):
             tab_frame1_layout.addWidget(y, i / 5, i % 5)
 
     elif obj.program_state.whereami()[0] == 2:
-        pass
+        if page_number > obj.pg2.total_pages() or page_number < 1:
+            print('Page out of bound')
+            return
+        obj.program_state.change_page(page_number)
+        reload_page_number(obj)
+        items = obj.pg2.page(page_number)
+        tab_frame2 = obj.findChild(QFrame, 'tab-frame2')
+        tab_frame2_layout = tab_frame2.layout()
+        clear_layout(tab_frame2_layout)
+        for i, row in items.iterrows():
+            img = create_pixmap_image(row['image_path'], [row['x_from_per'], row['y_from_per'], row['x_to_per'], row['y_to_per']], size=(200, 200))
+            y = QLabel()
+            y.setAlignment(QtCore.Qt.AlignCenter)
+            y.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+            y.setPixmap(img)
+            # y.installEventFilter()
+            # y.mousePressEvent = image_clicked
+            tab_frame2_layout.addWidget(y, i / 5, i % 5)
 
 # def image_clicked(event):
 #     print(event.button())
@@ -157,13 +177,18 @@ def op_widget(obj, type, name, op):
     elif op == 'clear':
         widget.clear()
 
-def show_page1(obj, files):
+def image_discovery_finsihed(obj, files):
     obj.create_first_paginator(files)
     obj.imported_images = files
-    page_label = obj.findChild(QLabel, 'page-label')
-    page_label.setText('/{}'.format(obj.pg1.total_pages()))
     obj.program_state.activate_tab(1)
     switch_tab(obj, 1)
+    change_page(obj, 1)
+
+def detection_finished(obj, files):
+    obj.create_second_paginator(files)
+    obj.detected_faces = files
+    obj.program_state.activate_tab(2)
+    switch_tab(obj, 2)
     change_page(obj, 1)
 
 # ------------------------------------------ UTILS ------------------------------------------
@@ -177,6 +202,10 @@ def add_animation(wrapper):
 def reload_page_number(obj):
     page_input = obj.findChild(QLineEdit, 'page-input')
     page_input.setText('{}'.format(obj.program_state.whereami()[1]))
+
+def reload_total_pages(obj):
+    page_label = obj.findChild(QLabel, 'page-label')
+    page_label.setText('/{}'.format(obj.get_current_paginator().total_pages()))
 
 def clear_layout(layout):
     while layout.count() > 0:
@@ -200,3 +229,14 @@ def setup_empty_folder(path='./program_data'):
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+
+def create_pixmap_image(image_path, bbox, size=(100, 100), imgtype='png'):
+    img = cv2.imread(image_path)[:, :, ::-1]
+    x_from = max(int(bbox[0] * img.shape[1] / 100), 0)
+    y_from = max(int(bbox[1] * img.shape[0] / 100), 0)
+    x_to = min(int(bbox[2] * img.shape[1] / 100), img.shape[1])
+    y_to = min(int(bbox[3] * img.shape[0] / 100), img.shape[0])
+    img = img[y_from:y_to, x_from:x_to, :]
+    pix = QImage(img.data.tobytes(), img.shape[1], img.shape[0], img.shape[1] * 3, QImage.Format_RGB888)
+    return QPixmap(pix).scaled(size[0], size[1])

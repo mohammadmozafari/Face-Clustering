@@ -86,6 +86,15 @@ class Window(QMainWindow):
     def create_first_paginator(self, files):
         self.pg1 = Pagination(files, page_size=15) 
 
+    def create_second_paginator(self, files):
+        self.pg2 = Pagination(files, page_size=15)
+
+    def get_current_paginator(self):
+        if self.program_state.whereami()[0] == 1:
+            return self.pg1
+        else:
+            return self.pg2
+
     def _createCentralWidget(self):
         main_frame = QFrame(objectName='wholeWindow')
         grid = QGridLayout()
