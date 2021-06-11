@@ -46,7 +46,7 @@ def get_styles():
     #mainSection {
     }
 
-    #progressbar {
+    #progressbar, #progressbar2, #progressbar3 {
         color: white;
         font-size: 18px;
         text-align: center;
@@ -54,7 +54,7 @@ def get_styles():
         background-color: rgb(178, 179, 180);
         border-radius: 10px;
     }
-    #progressbar::chunk {
+    #progressbar::chunk, #progressbar2::chunk, #progressbar3::chunk {
         background-color: rgb(41, 38, 100);
         border-radius: 8px;
     }

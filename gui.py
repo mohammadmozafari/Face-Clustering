@@ -12,7 +12,7 @@ from src.gui.worker_threads import TempProgressBarThread
 from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovie
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget, QLineEdit
-from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab, go_next, go_back, change_page, detect_faces, setup_empty_folder
+from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab, go_next, go_back, change_page, detect_faces, setup_empty_folder, cluster_faces
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Application State -------------------------------------
@@ -111,7 +111,7 @@ class Window(QMainWindow):
         buttons_info = [('./static/open-folder.svg', 'Open Folder', lambda: open_folder(self, loading_section), 'open-folder'),
                         ('./static/close-folder.svg', 'Close Folder', lambda: close_folder(self), 'close-folder'),
                         ('./static/find-faces.svg', 'Find Faces', lambda: detect_faces(self), 'find-faces'),
-                        ('./static/cluster-faces.svg', 'Cluster', lambda: print('fuck'), 'cluster-faces'), 
+                        ('./static/cluster-faces.svg', 'Cluster', lambda: cluster_faces(self), 'cluster-faces'), 
                         ('./static/find-faces.svg', 'Exit', exit_fn, 'exit')]
         for path, title, fn, objName in buttons_info:
             sidebar_grid.addWidget(create_button(path, title, fn, objName))
@@ -124,7 +124,16 @@ class Window(QMainWindow):
         main_section.setLayout(main_section_layout)
         progressbar_section = QProgressBar(minimum=0, maximum=1000, objectName='progressbar')
         progressbar_section.setValue(13)
-        progressbar_section.hide()
+        progressbar_section.setFormat('Detecting faces ... (%p%)')
+        progressbar_section.hide()  
+        progressbar_section2 = QProgressBar(minimum=0, maximum=1000, objectName='progressbar2')
+        progressbar_section2.setValue(13)
+        progressbar_section2.setFormat('Extracting features ... (%p%)')
+        progressbar_section2.hide()
+        progressbar_section3 = QProgressBar(minimum=0, maximum=1000, objectName='progressbar3')
+        progressbar_section3.setValue(13)
+        progressbar_section3.setFormat('Clustering faces ... (%p%)')
+        progressbar_section3.hide()
 
         content = QFrame(objectName='content')
         content_layout = QVBoxLayout()
@@ -186,6 +195,8 @@ class Window(QMainWindow):
         pagination.hide()
 
         main_section_layout.addWidget(progressbar_section)
+        main_section_layout.addWidget(progressbar_section2)
+        main_section_layout.addWidget(progressbar_section3)
         main_section_layout.addWidget(content)
         main_section_layout.addWidget(pagination)
 

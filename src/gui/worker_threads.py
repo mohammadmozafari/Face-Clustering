@@ -59,6 +59,23 @@ class FaceDetectionThread(QtCore.QThread):
         self.show_sig.emit(self.obj, QFrame, 'find-faces', 'hide')
         self.show_sig.emit(self.obj, QFrame, 'cluster-faces', 'show')
         self.finish.emit(self.obj, face_files)
+class ClusteringThread(QtCore.QThread):
+
+    pbar_sig = QtCore.pyqtSignal(QMainWindow, int, int)
+    show_sig = QtCore.pyqtSignal(QMainWindow, type, str, str)
+    finish = QtCore.pyqtSignal(QMainWindow, list)
+
+    def __init__(self, obj, csv_files, parent=None):
+        QtCore.QThread.__init__(self, parent)
+        self.obj = obj
+        self.csv_files = csv_files
+
+    def run(self):
+        for i in range(14, 1001):
+            self.pbar_sig.emit(self.obj, 2, i)
+            time.sleep(0.005)
+        self.show_sig.emit(self.obj, QFrame, 'cluster-faces', 'hide')
+        self.finish.emit(self.obj, [1, 2])
 
 # class PrepareImageThread(QtCore.QThread):
 

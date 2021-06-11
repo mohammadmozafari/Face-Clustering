@@ -6,7 +6,7 @@ from PyQt5 import QtCore
 import matplotlib.pyplot as plt
 from PyQt5.QtGui import QCursor, QMovie, QPixmap, QImage, QBrush, QPainter, QWindow
 from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton, QLineEdit, QProgressBar, QLabel
-from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread, FaceDetectionThread
+from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread, FaceDetectionThread, ClusteringThread
 
 # ------------------------------------------ EVENT HANDLERS ------------------------------------------
 def open_folder(obj, loading_section):
@@ -26,11 +26,15 @@ def close_folder(obj):
     find_faces = obj.findChild(QFrame, 'find-faces')
     cluster_faces = obj.findChild(QFrame, 'cluster-faces')
     pbar = obj.findChild(QProgressBar, 'progressbar')
+    pbar2 = obj.findChild(QProgressBar, 'progressbar2')
+    pbar3 = obj.findChild(QProgressBar, 'progressbar3')
     close_folder_button.hide()
     open_folder_button.show()
     find_faces.hide()
-    pbar.hide()
     cluster_faces.hide()
+    pbar.hide()
+    pbar2.hide()
+    pbar3.hide()
     tab_frame1 = obj.findChild(QFrame, 'tab-frame1')
     clear_layout(tab_frame1.layout())
     obj.program_state.deactivate_tab(1)
@@ -49,6 +53,22 @@ def detect_faces(obj):
     obj.t2.finish.connect(detection_finished)
     obj.t2.daemon = True
     obj.t2.start()
+
+def cluster_faces(obj):
+    csv_files = obj.detected_faces
+    pbar = obj.findChild(QProgressBar, 'progressbar')
+    pbar2 = obj.findChild(QProgressBar, 'progressbar2')
+    pbar3 = obj.findChild(QProgressBar, 'progressbar3')
+    pbar.hide()
+    pbar2.show()
+    pbar3.show()
+    obj.t3 = ClusteringThread(obj, csv_files)
+    obj.t3.pbar_sig.connect(update_progressbar2_3)
+    obj.t3.show_sig.connect(op_widget)
+    obj.t3.finish.connect(clustering_finished)
+    obj.t3.daemon = True
+    obj.t3.start()
+
 
 def exit_fn():
     sys.exit()
@@ -168,8 +188,16 @@ def change_page(obj, page_number):
 
 # ------------------------------------------ SLOTS ------------------------------------------
 def update_progressbar(obj, value):
-    checkbox = obj.findChild(QProgressBar, "progressbar")
-    checkbox.setValue(max(13, value))
+    pbar = obj.findChild(QProgressBar, "progressbar")
+    pbar.setValue(max(13, value))
+
+def update_progressbar2_3(obj, pbar_num, value):
+    pbar = None
+    if pbar_num == 2:
+        pbar = obj.findChild(QProgressBar, "progressbar2")
+    if pbar_num == 3:
+        pbar = obj.findChild(QProgressBar, "progressbar3")
+    pbar.setValue(max(13, value))
 
 def op_widget(obj, type, name, op):
     widget = obj.findChild(type, name)
@@ -193,6 +221,9 @@ def detection_finished(obj, files):
     obj.program_state.activate_tab(2)
     switch_tab(obj, 2)
     change_page(obj, 1)
+
+def clustering_finished(obj, files):
+    print('shit finished')
 
 # ------------------------------------------ UTILS ------------------------------------------
 def add_animation(wrapper):
