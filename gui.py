@@ -64,7 +64,7 @@ def create_button(icon_path, text, fn, objName):
     label.setAlignment(QtCore.Qt.AlignCenter)
     wrapper_layout.addWidget(button, 1)
     wrapper_layout.addWidget(label, 2)
-    if objName == 'close-folder' or objName == 'find-faces':
+    if objName == 'close-folder' or objName == 'find-faces' or objName == 'cluster-faces':
         wrapper.hide()
     return wrapper
 
@@ -111,7 +111,7 @@ class Window(QMainWindow):
         buttons_info = [('./static/open-folder.svg', 'Open Folder', lambda: open_folder(self, loading_section), 'open-folder'),
                         ('./static/close-folder.svg', 'Close Folder', lambda: close_folder(self), 'close-folder'),
                         ('./static/find-faces.svg', 'Find Faces', lambda: detect_faces(self), 'find-faces'),
-                        ('./static/find-faces.svg', 'Temp Button', lambda: temp(self), 'temp'), 
+                        ('./static/cluster-faces.svg', 'Cluster', lambda: print('fuck'), 'cluster-faces'), 
                         ('./static/find-faces.svg', 'Exit', exit_fn, 'exit')]
         for path, title, fn, objName in buttons_info:
             sidebar_grid.addWidget(create_button(path, title, fn, objName))

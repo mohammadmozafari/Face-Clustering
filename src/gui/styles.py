@@ -9,7 +9,7 @@ def get_styles():
         height: 300px;
     }
 
-    #open-folder, #close-folder, #find-faces, #temp, #exit {
+    #open-folder, #close-folder, #find-faces, #cluster-faces, #exit {
         max-width: 100px;
         max-height: 500px;
         margin: 0px;
@@ -21,17 +21,17 @@ def get_styles():
     #close-folder, #exit {
         background-color: rgb(210, 0, 0);
     }
-    #open-folder:hover, #find-faces:hover, #temp:hover {
+    #open-folder:hover, #find-faces:hover, #cluster-faces:hover {
         background-color: rgb(11, 8, 70);
     }
     #close-folder:hover, #exit:hover {
         background-color: rgb(140, 0, 0);
     }
-    #open-folder-btn, #close-folder-btn, #find-faces-btn, #temp-btn, #exit-btn {
+    #open-folder-btn, #close-folder-btn, #find-faces-btn, #cluster-faces-btn, #exit-btn {
         height: 70px;
         background-color: transparent;
     }
-    #open-folder-label, #close-folder-label, #find-faces-label, #temp-label, #exit-label {
+    #open-folder-label, #close-folder-label, #find-faces-label, #cluster-faces-label, #exit-label {
         font-size: 14px;
         color: white;
         background-color: transparent;

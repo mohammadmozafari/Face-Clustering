@@ -43,8 +43,9 @@ class TempProgressBarThread(QtCore.QThread):
 
 class FaceDetectionThread(QtCore.QThread):
     
-    sig = QtCore.pyqtSignal(QMainWindow, int)
+    pbar_sig = QtCore.pyqtSignal(QMainWindow, int)
     finish = QtCore.pyqtSignal(QMainWindow, list)
+    show_sig = QtCore.pyqtSignal(QMainWindow, type, str, str)
     
     def __init__(self, obj, csv_files, parent=None):
         QtCore.QThread.__init__(self, parent)
@@ -54,7 +55,9 @@ class FaceDetectionThread(QtCore.QThread):
     def run(self):
         progressbar = self.obj.findChild(QProgressBar, "progressbar")
         det = Detection(self.csv_files, './program_data/faces', 32, (250, 250), device='cuda:0', same=False)
-        face_files = det.detect_faces(num_workers=2, gui_params=(self.obj, self.sig))
+        face_files = det.detect_faces(num_workers=2, gui_params=(self.obj, self.pbar_sig))
+        self.show_sig.emit(self.obj, QFrame, 'find-faces', 'hide')
+        self.show_sig.emit(self.obj, QFrame, 'cluster-faces', 'show')
         self.finish.emit(self.obj, face_files)
 
 # class PrepareImageThread(QtCore.QThread):
