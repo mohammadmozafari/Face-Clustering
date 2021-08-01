@@ -140,7 +140,7 @@ def evaluate_on_lfw():
     plt.show()
 
 if __name__ == "__main__":
-    # lfw_extract_features()
+    lfw_extract_features()
     # lfw_prepare_pairs()
     # check_mistakes()
-    evaluate_on_lfw()
+    # evaluate_on_lfw()

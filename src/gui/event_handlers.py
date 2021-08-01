@@ -250,7 +250,7 @@ def clear_layout(layout):
         if w:
             w.deleteLater()
 
-def setup_empty_folder(path='./program_data'):
+def setup_empty_folder(path='./data'):
     if not os.path.exists(path):
         os.mkdir(path)
         return

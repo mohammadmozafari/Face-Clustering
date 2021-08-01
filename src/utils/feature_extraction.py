@@ -27,7 +27,7 @@ class FeatureExtractor:
         if not os.path.exists(result_folder):
             os.makedirs(result_folder)
 
-    def extract_features(self, num_workers=0):
+    def extract_features(self, num_workers=0, pbar_emit_signal=None):
         """
         Goes through all csv files and get face images.
         Extracts featuers from these faces and saves them in csv files.
@@ -52,7 +52,9 @@ class FeatureExtractor:
                     tock = time.time()
                     total_time += (tock - tick)
                     print('Processed {}/{} faces. ({:.2f} faces per second)'.format(counter, self.total_images, bsize/(tock-tick)))
+                    pbar_emit_signal(max(14, int(counter * 1000 / self.total_images)))
                     tick = time.time()
+                self.save_binary(embeddings)
                 result.append(self.save_to_csv(embeddings))
                 tick = time.time()
         print()
@@ -71,3 +73,7 @@ class FeatureExtractor:
         df.to_csv(save_path, index=False)
         self.current_split += 1
         return save_path
+
+    def save_binary(self, embeddings):
+        save_path = os.path.join(self.result_folder, 'features_{}_{}_'.format(self.current_split, embeddings.shape[0]))
+        np.save(save_path, embeddings)

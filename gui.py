@@ -205,7 +205,7 @@ class Window(QMainWindow):
         self.setCentralWidget(main_frame)
 
 if __name__ == '__main__':
-    setup_empty_folder('./program_data')
+    setup_empty_folder('./data')
     app = QApplication(sys.argv)
     app.setStyleSheet(get_styles())
     win = Window()
