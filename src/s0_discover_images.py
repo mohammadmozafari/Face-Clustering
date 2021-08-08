@@ -2,7 +2,6 @@ import os
 import argparse
 import pandas as pd
 from retina_detect import main
-from utils.image_discovery import ImageDiscovery
 
 def iter_images(path, extensions=['.jpg', '.png']):
     index = 0
