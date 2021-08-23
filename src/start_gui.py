@@ -5,14 +5,13 @@ import time
 import shutil
 import threading
 from PyQt5 import QtCore, QtWidgets
-from src.gui.styles import get_styles
-from src.utils.datasets import Pagination
-from src.utils.image_discovery import ImageDiscovery
-from src.gui.worker_threads import TempProgressBarThread
+from styles import get_styles
+from utils.datasets import Pagination
+from worker_threads import TempProgressBarThread
 from PyQt5.QtGui import QCursor, QPalette, QPainter, QBrush, QPen, QColor, QMovie
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel, QMainWindow, QPushButton, QProgressBar
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QFrame, QGridLayout, QVBoxLayout, QFileDialog, QWidget, QLineEdit
-from src.gui.event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab, go_next, go_back, change_page, detect_faces, setup_empty_folder, cluster_faces
+from event_handlers import open_folder, close_folder, exit_fn, temp, switch_tab, go_next, go_back, change_page, detect_faces, setup_empty_folder, cluster_faces
 
 # ---------------------------------------------------------------------------------------------
 # ------------------------------------- Application State -------------------------------------
@@ -82,6 +81,8 @@ class Window(QMainWindow):
         self.imported_images = []
         self.selected_images = []
         self.selected_faces = []
+        self.pg1 = None
+        self.pg2 = None
 
     def create_first_paginator(self, files):
         self.pg1 = Pagination(files, page_size=15) 
@@ -134,6 +135,10 @@ class Window(QMainWindow):
         progressbar_section3.setValue(13)
         progressbar_section3.setFormat('Clustering faces ... (%p%)')
         progressbar_section3.hide()
+        progressbar_section4 = QProgressBar(minimum=0, maximum=1000, objectName='progressbar4')
+        progressbar_section4.setValue(13)
+        progressbar_section4.setFormat('Saving ... (%p%)')
+        progressbar_section4.hide()
 
         content = QFrame(objectName='content')
         content_layout = QVBoxLayout()
@@ -147,31 +152,22 @@ class Window(QMainWindow):
         tab_head_layout.setSpacing(0)
         button_frame1 = QPushButton('Imported Images', objectName='btn-frame1')
         button_frame2 = QPushButton('Detected Faces', objectName='btn-frame2')
-        button_frame3 = QPushButton('People', objectName='btn-frame3')
         button_frame1.clicked.connect(lambda: switch_tab(self, 1))
         button_frame2.clicked.connect(lambda: switch_tab(self, 2))
-        button_frame3.clicked.connect(lambda: switch_tab(self, 3))
         button_frame1.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         button_frame2.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
-        button_frame3.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         tab_head_layout.addWidget(button_frame1)
         tab_head_layout.addWidget(button_frame2)
-        tab_head_layout.addWidget(button_frame3)
         tab_frame1 = QFrame(objectName='tab-frame1')
         tab_frame1_layout = QGridLayout()
         tab_frame1.setLayout(tab_frame1_layout)
         tab_frame2 = QFrame(objectName='tab-frame2')
         tab_frame2_layout = QGridLayout()
         tab_frame2.setLayout(tab_frame2_layout)
-        tab_frame3 = QFrame(objectName='tab-frame3')
-        tab_frame3_layout = QGridLayout()
-        tab_frame3.setLayout(tab_frame3_layout)
         tab_frame2.hide()
-        tab_frame3.hide()
         content_layout.addWidget(tab_head)
         content_layout.addWidget(tab_frame1)
         content_layout.addWidget(tab_frame2)
-        content_layout.addWidget(tab_frame3)
 
         pagination = QFrame(objectName='pagination-section')
         pagination_layout = QHBoxLayout()
@@ -197,6 +193,7 @@ class Window(QMainWindow):
         main_section_layout.addWidget(progressbar_section)
         main_section_layout.addWidget(progressbar_section2)
         main_section_layout.addWidget(progressbar_section3)
+        main_section_layout.addWidget(progressbar_section4)
         main_section_layout.addWidget(content)
         main_section_layout.addWidget(pagination)
 
@@ -205,7 +202,7 @@ class Window(QMainWindow):
         self.setCentralWidget(main_frame)
 
 if __name__ == '__main__':
-    setup_empty_folder('./data')
+    setup_empty_folder('./data/program_data/')
     app = QApplication(sys.argv)
     app.setStyleSheet(get_styles())
     win = Window()

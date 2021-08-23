@@ -46,7 +46,7 @@ def get_styles():
     #mainSection {
     }
 
-    #progressbar, #progressbar2, #progressbar3 {
+    #progressbar, #progressbar2, #progressbar3, #progressbar4 {
         color: white;
         font-size: 18px;
         text-align: center;
@@ -54,7 +54,7 @@ def get_styles():
         background-color: rgb(178, 179, 180);
         border-radius: 10px;
     }
-    #progressbar::chunk, #progressbar2::chunk, #progressbar3::chunk {
+    #progressbar::chunk, #progressbar2::chunk, #progressbar3::chunk, #progressbar4::chunk {
         background-color: rgb(41, 38, 100);
         border-radius: 8px;
     }
@@ -67,7 +67,7 @@ def get_styles():
     #tab-head {
         max-height: 30px;
     }
-    #btn-frame1, #btn-frame2, #btn-frame3 {
+    #btn-frame1, #btn-frame2 {
         background-color: rgb(210, 210, 210);
         height: 30px;
         font-size: 18px;
@@ -79,13 +79,10 @@ def get_styles():
         border-right: 1px solid rgb(178, 179, 180);
     }
     #btn-frame2 {
-        border-radius: 0px;
+        border-top-right-radius: 10px;
         border-right: 1px solid rgb(178, 179, 180);
     }
-    #btn-frame3 {
-        border-top-right-radius: 10px;
-    }
-    #tab-frame1, #tab-frame2, #tab-frame3a {
+    #tab-frame1, #tab-frame2 {
         border-bottom-left-radius: 10px;
         border-bottom-right-radius: 10px;
     }

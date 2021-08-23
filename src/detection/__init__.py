@@ -1,1 +1,2 @@
 from detection.models.retinaface import RetinaFace
+from detection.mtcnn_detection import MTCNNDetection

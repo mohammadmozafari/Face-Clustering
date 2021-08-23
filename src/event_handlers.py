@@ -6,7 +6,7 @@ from PyQt5 import QtCore
 import matplotlib.pyplot as plt
 from PyQt5.QtGui import QCursor, QMovie, QPixmap, QImage, QBrush, QPainter, QWindow
 from PyQt5.QtWidgets import QFileDialog, QFrame, QPushButton, QLineEdit, QProgressBar, QLabel
-from src.gui.worker_threads import TempProgressBarThread, ImageDiscoveryThread, FaceDetectionThread, ClusteringThread
+from worker_threads import TempProgressBarThread, ImageDiscoveryThread, FaceDetectionThread, ClusteringThread
 
 # ------------------------------------------ EVENT HANDLERS ------------------------------------------
 def open_folder(obj, loading_section):
@@ -28,6 +28,7 @@ def close_folder(obj):
     pbar = obj.findChild(QProgressBar, 'progressbar')
     pbar2 = obj.findChild(QProgressBar, 'progressbar2')
     pbar3 = obj.findChild(QProgressBar, 'progressbar3')
+    pbar4 = obj.findChild(QProgressBar, 'progressbar4')
     close_folder_button.hide()
     open_folder_button.show()
     find_faces.hide()
@@ -35,6 +36,7 @@ def close_folder(obj):
     pbar.hide()
     pbar2.hide()
     pbar3.hide()
+    pbar4.hide()
     tab_frame1 = obj.findChild(QFrame, 'tab-frame1')
     clear_layout(tab_frame1.layout())
     obj.program_state.deactivate_tab(1)
@@ -59,11 +61,13 @@ def cluster_faces(obj):
     pbar = obj.findChild(QProgressBar, 'progressbar')
     pbar2 = obj.findChild(QProgressBar, 'progressbar2')
     pbar3 = obj.findChild(QProgressBar, 'progressbar3')
+    pbar4 = obj.findChild(QProgressBar, 'progressbar4')
     pbar.hide()
     pbar2.show()
     pbar3.show()
+    pbar4.show()
     obj.t3 = ClusteringThread(obj, csv_files)
-    obj.t3.pbar_sig.connect(update_progressbar2_3)
+    obj.t3.pbar_sig.connect(update_progressbar2_3_4)
     obj.t3.show_sig.connect(op_widget)
     obj.t3.finish.connect(clustering_finished)
     obj.t3.daemon = True
@@ -95,34 +99,20 @@ def switch_tab(obj, tab_number):
 
     btn1 = obj.findChild(QPushButton, "btn-frame1")
     btn2 = obj.findChild(QPushButton, "btn-frame2")
-    btn3 = obj.findChild(QPushButton, "btn-frame3")
     tab1 = obj.findChild(QFrame, 'tab-frame1')
     tab2 = obj.findChild(QFrame, 'tab-frame2')
-    tab3 = obj.findChild(QFrame, 'tab-frame3')
 
     if tab_number == 1:
         enable_btn(btn1)
         disable_btn(btn2)
-        disable_btn(btn3)
         tab1.show()
         tab2.hide()
-        tab3.hide()
 
     elif tab_number == 2:
         disable_btn(btn1)
         enable_btn(btn2)
-        disable_btn(btn3)
         tab1.hide()
         tab2.show()
-        tab3.hide()
-
-    elif tab_number == 3:
-        disable_btn(btn1)
-        disable_btn(btn2)
-        enable_btn(btn3)
-        tab1.hide()
-        tab2.hide()
-        tab3.show()
 
     obj.program_state.change_tab(tab_number)
     reload_page_number(obj)
@@ -191,12 +181,14 @@ def update_progressbar(obj, value):
     pbar = obj.findChild(QProgressBar, "progressbar")
     pbar.setValue(max(13, value))
 
-def update_progressbar2_3(obj, pbar_num, value):
+def update_progressbar2_3_4(obj, pbar_num, value):
     pbar = None
     if pbar_num == 2:
         pbar = obj.findChild(QProgressBar, "progressbar2")
     if pbar_num == 3:
         pbar = obj.findChild(QProgressBar, "progressbar3")
+    if pbar_num == 4:
+        pbar = obj.findChild(QProgressBar, "progressbar4")
     pbar.setValue(max(13, value))
 
 def op_widget(obj, type, name, op):
@@ -239,7 +231,10 @@ def reload_page_number(obj):
 
 def reload_total_pages(obj):
     page_label = obj.findChild(QLabel, 'page-label')
-    page_label.setText('/{}'.format(obj.get_current_paginator().total_pages()))
+    pg = obj.get_current_paginator()
+    if pg is None:
+        return
+    page_label.setText('/{}'.format(pg.total_pages()))
 
 def clear_layout(layout):
     while layout.count() > 0:
@@ -250,7 +245,7 @@ def clear_layout(layout):
         if w:
             w.deleteLater()
 
-def setup_empty_folder(path='./data'):
+def setup_empty_folder(path='./data/program_data/'):
     if not os.path.exists(path):
         os.mkdir(path)
         return

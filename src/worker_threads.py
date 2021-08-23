@@ -3,12 +3,13 @@ import torch
 import itertools
 import numpy as np
 from PyQt5 import QtCore
+import s0_discover_images
 from typing import NewType
-from src.utils.detection import Detection
-from src.utils.clustering import ThresholdClustering
-from src.utils.image_discovery import ImageDiscovery
-from src.utils.feature_extraction import FeatureExtractor
+from detection import MTCNNDetection
+from clustering import cluster_faces
+from utils.feature_extraction import FeatureExtractor
 from PyQt5.QtWidgets import QProgressBar, QFrame, QLabel, QMainWindow, QGridLayout
+from utils import save_images_with_bboxes
 
 class ImageDiscoveryThread(QtCore.QThread):
 
@@ -21,7 +22,7 @@ class ImageDiscoveryThread(QtCore.QThread):
         self.root = root
 
     def run(self):
-        files = ImageDiscovery(folder_address=self.root, save_folder='./data/paths').discover()
+        files = s0_discover_images.main(self.root, './data/program_data')
         time.sleep(1)
         self.sig.emit(self.obj, QFrame, 'open-folder', 'hide')
         self.sig.emit(self.obj, QFrame, 'close-folder', 'show')
@@ -57,11 +58,12 @@ class FaceDetectionThread(QtCore.QThread):
 
     def run(self):
         progressbar = self.obj.findChild(QProgressBar, "progressbar")
-        det = Detection(self.csv_files, './data/faces', 32, (250, 250), device='cuda:0', same=False)
+        det = MTCNNDetection(self.csv_files, './data/program_data', 32, (540, 648), device='cuda:0', same=False)
         face_files = det.detect_faces(num_workers=2, gui_params=(self.obj, self.pbar_sig))
         self.show_sig.emit(self.obj, QFrame, 'find-faces', 'hide')
         self.show_sig.emit(self.obj, QFrame, 'cluster-faces', 'show')
         self.finish.emit(self.obj, face_files)
+
 class ClusteringThread(QtCore.QThread):
 
     pbar_sig = QtCore.pyqtSignal(QMainWindow, int, int)
@@ -74,11 +76,10 @@ class ClusteringThread(QtCore.QThread):
         self.csv_files = csv_files
 
     def run(self):
-        fe = FeatureExtractor(self.csv_files, './data/features', torch.device('cuda:0'))
+        fe = FeatureExtractor(self.csv_files, './data/program_data', torch.device('cuda:0'))
         features_files = fe.extract_features(pbar_emit_signal=lambda v: self.pbar_sig.emit(self.obj, 2, v))
-        tc = ThresholdClustering()
-        clusters = tc.find_clusters(features_files, pbar_emit_signal=lambda v: self.pbar_sig.emit(self.obj, 3, v))
-        print(clusters)
+        clusters = cluster_faces(features_files[0], None)
+        save_images_with_bboxes(clusters, self.csv_files[0], './output', pbar_emit_signal=lambda v: self.pbar_sig.emit(self.obj, 4, v))
         self.show_sig.emit(self.obj, QFrame, 'cluster-faces', 'hide')
         self.finish.emit(self.obj, [1, 2])
 

@@ -1,30 +1,14 @@
 import cv2
 import time
+import argparse
 import pandas as pd
 from facenet_pytorch import MTCNN
-from src.visualization import show_images
-from src.utils.detection import Detection
-from src.utils.image_discovery import ImageDiscovery
+from detection import MTCNNDetection
+from visualization import show_images
 
-def run_discovery(root_folder, destination_folder):
-    """
-    Run image discovery on root folder, then save
-    the results in csv files and return their paths.
-    """
-    start = time.time()
-    discoverer = ImageDiscovery(root_folder, destination_folder)
-    csv_files = discoverer.discover()
-    end = time.time()
-    print('It took {:.2f} seconds to find all images.'.format(end - start))
-    return csv_files
-
-def run_detection(csv_files, destination_folder):
-    """
-    Run image discovery on root folder, then save
-    the results in csv files and return their paths.
-    """
+def main(images, save_folder, h, w):
     start_detection = time.time()
-    det = Detection(csv_files, destination_folder, 32, (250, 250), one_face=True, device='cuda:0', same=True, mode='center')
+    det = MTCNNDetection([images], save_folder, 32, (h, w), one_face=True, device='cuda:0', same=True, mode='center')
     csv_files = det.detect_faces(num_workers=2)
     end_detection = time.time()
     print('It took {:.2f} seconds to detect all faces.'.format(end_detection - start_detection))
@@ -58,7 +42,17 @@ def detect_one():
     print(out)
     
 if __name__ == "__main__":
-    paths_files = run_discovery('.\\data\\lfw', '.\\results\\lfw-paths')
-    bbox_csvs = run_detection(paths_files, '.\\results\\lfw-bboxes')
-    show_samples(['results\\lfw-bboxes\\bounding_boxes_1_13233_.csv'], n=25)
+    
+    parser = argparse.ArgumentParser(description='Face detection')
+    parser.add_argument('--images', help='CSV file containing image paths')
+    parser.add_argument('--save_folder', help='Folder to save detected faces')
+    parser.add_argument('--height', help='Resize height of images', type=int)
+    parser.add_argument('--width', help='Resize width of images', type=int)
+    args = parser.parse_args()
+    main(args.images, args.save_folder, args.height, args.width)
+
+    # paths_files = run_discovery('.\\data\\lfw', '.\\results\\lfw-paths')
+    # bbox_csvs = run_detection(paths_files, '.\\results\\lfw-bboxes')
+    # show_samples(['results\\lfw-bboxes\\bounding_boxes_1_13233_.csv'], n=25)
+
     # detect_one()

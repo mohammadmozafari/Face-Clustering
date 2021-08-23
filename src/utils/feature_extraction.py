@@ -4,8 +4,8 @@ import torch
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
-from src.utils.datasets import FaceDataset
-from src.utils.inception_resnet_v1 import InceptionResnetV1
+from utils.datasets import FaceDataset
+from utils.inception_resnet_v1 import InceptionResnetV1
 
 class FeatureExtractor:
 
@@ -54,8 +54,7 @@ class FeatureExtractor:
                     print('Processed {}/{} faces. ({:.2f} faces per second)'.format(counter, self.total_images, bsize/(tock-tick)))
                     pbar_emit_signal(max(14, int(counter * 1000 / self.total_images)))
                     tick = time.time()
-                self.save_binary(embeddings)
-                result.append(self.save_to_csv(embeddings))
+                result.append(self.save_binary(embeddings))
                 tick = time.time()
         print()
         print('Average speed: {:.2f} faces per second'.format(self.total_images/(total_time)))
@@ -75,5 +74,6 @@ class FeatureExtractor:
         return save_path
 
     def save_binary(self, embeddings):
-        save_path = os.path.join(self.result_folder, 'features_{}_{}_'.format(self.current_split, embeddings.shape[0]))
+        save_path = os.path.join(self.result_folder, 'features_{}_{}_.npy'.format(self.current_split, embeddings.shape[0]))
         np.save(save_path, embeddings)
+        return save_path

@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 from time import time
 from facenet_pytorch import MTCNN
+from utils.datasets import ImageDataset
 from torch.utils.data import DataLoader
-from src.utils.datasets import ImageDataset
 
-class Detection:
+class MTCNNDetection:
     """
     A module for detecting the bounding box
     position of faces in images.

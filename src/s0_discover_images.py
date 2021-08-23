@@ -1,9 +1,8 @@
 import os
 import argparse
 import pandas as pd
-from retina_detect import main
 
-def iter_images(path, extensions=['.jpg', '.png']):
+def iter_images(path, extensions=['.jpg', '.jpeg', '.png']):
     index = 0
     for root, _, files in os.walk(path):
         for f in files:
@@ -23,6 +22,7 @@ def save_in_csv(paths, save_folder, split):
     return save_path
 
 def main(folder_address, save_folder, items_in_file=100_000):
+    results = []
     image_paths = []
     file_num = 1
     for i, image_path in iter_images(folder_address):
@@ -32,9 +32,10 @@ def main(folder_address, save_folder, items_in_file=100_000):
             image_paths = []
             file_num += 1
     if len(image_paths) > 0:
-        save_in_csv(image_paths, save_folder, file_num)
+        results.append(save_in_csv(image_paths, save_folder, file_num))
         image_paths = []
         file_num += 1
+    return results
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Discover all images in a folder')

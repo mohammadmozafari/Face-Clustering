@@ -2,3 +2,4 @@ data/
 results/
 trained_models/
 temp.py
+output/
