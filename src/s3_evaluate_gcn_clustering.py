@@ -31,6 +31,7 @@ from clustering.utils.utils import bcubed
 from clustering.utils.graph import graph_propagation, graph_propagation_soft, graph_propagation_naive
 
 from sklearn.metrics import normalized_mutual_info_score, precision_score, recall_score
+from utils import save_images_with_bboxes
 
 def single_remove(Y, pred):
     single_idcs = np.zeros_like(pred)
@@ -97,6 +98,8 @@ def main(args):
     p,r,f = bcubed(final_pred, labels)
     nmi = normalized_mutual_info_score(final_pred, labels)
     print(('{:.4f}    '*4).format(p,r,f, nmi))
+
+    return final_pred
     
     
 def clusters2labels(clusters, n_nodes):
@@ -123,6 +126,8 @@ def validate(loader, net, crit):
     edges = list()
     scores = list()
     for i, ((feat, adj, cid, h1id, node_list), gtmat) in enumerate(loader):
+        print(feat.shape)
+        print(adj.shape)
         data_time.update(time.time() - end)
         feat, adj, cid, h1id, gtmat = map(lambda x: x.cuda(), 
                                 (feat, adj, cid, h1id, gtmat))
@@ -189,7 +194,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=20)
     
     parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--k-at-hop', type=int, nargs='+', default=[20,5])
+    parser.add_argument('--k-at-hop', type=int, nargs='+', default=[5,5])
     parser.add_argument('--active_connection', type=int, default=5)
 
     # Validation args 
@@ -203,4 +208,6 @@ if __name__ == '__main__':
     # Test args
     parser.add_argument('--checkpoint', type=str, metavar='PATH', default='./logs/logs/best.ckpt')
     args = parser.parse_args()
-    main(args)
+    preds = main(args)
+
+    save_images_with_bboxes(preds, './data/program_data/bounding_boxes_1_30_.csv', './output', None)

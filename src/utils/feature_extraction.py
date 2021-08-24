@@ -52,7 +52,8 @@ class FeatureExtractor:
                     tock = time.time()
                     total_time += (tock - tick)
                     print('Processed {}/{} faces. ({:.2f} faces per second)'.format(counter, self.total_images, bsize/(tock-tick)))
-                    pbar_emit_signal(max(14, int(counter * 1000 / self.total_images)))
+                    if pbar_emit_signal:
+                        pbar_emit_signal(max(14, int(counter * 1000 / self.total_images)))
                     tick = time.time()
                 result.append(self.save_binary(embeddings))
                 tick = time.time()

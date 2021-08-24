@@ -1,4 +1,4 @@
-python_file='./src/evaluate_threshold_clustering.py'
+python_file='./src/s3_evaluate_threshold_clustering.py'
 
 input_file1='./data/IJB-B/512.fea.npy'
 labels1='./data/IJB-B/512.labels.npy'

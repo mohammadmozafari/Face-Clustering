@@ -46,8 +46,8 @@ def save_images_with_bboxes(clusters, csv_file, dest_folder, pbar_emit_signal):
         img = Image.fromarray(img)
         dest = os.path.join(folder, '{}.jpeg'.format(i))
         img.save(dest)
-        pbar_emit_signal(max(13, (i+1)*1000/len(df)))
-        time.sleep(1)
+        if pbar_emit_signal:
+            pbar_emit_signal(max(13, (i+1)*1000/len(df)))
 
 def main():
     save_images_with_bboxes([0, 1, 0, 0, 0, 1, 3, 2, 2], './data/program_data/bounding_boxes_.csv', './output')

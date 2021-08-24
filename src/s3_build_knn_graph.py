@@ -5,6 +5,8 @@ from clustering.knn_graph import build_knn_graph
 
 def main(args):
     features = np.load(args.feat_path)
+    print(features.shape)
+    print('begin')
     tick = time.time()
     knn_graph = build_knn_graph(features, int(args.k), args.alg)
     tock = time.time()

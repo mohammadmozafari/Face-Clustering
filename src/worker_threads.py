@@ -76,7 +76,7 @@ class ClusteringThread(QtCore.QThread):
         self.csv_files = csv_files
 
     def run(self):
-        fe = FeatureExtractor(self.csv_files, './data/program_data', torch.device('cuda:0'))
+        fe = FeatureExtractor(self.csv_files, './data/program_data', torch.device('cuda:0'), margin=10)
         features_files = fe.extract_features(pbar_emit_signal=lambda v: self.pbar_sig.emit(self.obj, 2, v))
         clusters = cluster_faces(features_files[0], None)
         save_images_with_bboxes(clusters, self.csv_files[0], './output', pbar_emit_signal=lambda v: self.pbar_sig.emit(self.obj, 4, v))
