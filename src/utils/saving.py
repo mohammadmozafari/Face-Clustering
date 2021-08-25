@@ -39,7 +39,7 @@ def save_images_with_bboxes(clusters, csv_file, dest_folder, pbar_emit_signal):
         x2 = min(int(row['x_to_per'] * w / 100), w)
         y1 = max(int(row['y_from_per'] * h / 100), 0)
         y2 = min(int(row['y_to_per'] * h / 100), h)
-        img = add_bbox(img, x1, x2, y1, y2, thickness=30)
+        img = add_bbox(img, x1, x2, y1, y2, thickness=10)
         folder = os.path.join(dest_folder, str(clusters[i]))
         if not os.path.exists(folder):
             os.mkdir(folder)

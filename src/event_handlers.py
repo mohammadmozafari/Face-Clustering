@@ -215,7 +215,7 @@ def detection_finished(obj, files):
     change_page(obj, 1)
 
 def clustering_finished(obj, files):
-    print('shit finished')
+    pass
 
 # ------------------------------------------ UTILS ------------------------------------------
 def add_animation(wrapper):

@@ -9,6 +9,9 @@ from detection import MTCNNDetection
 from clustering import cluster_faces
 from utils.feature_extraction import FeatureExtractor
 from PyQt5.QtWidgets import QProgressBar, QFrame, QLabel, QMainWindow, QGridLayout
+import s3_build_knn_graph as kgraph
+import s3_evaluate_gcn_clustering as gcn
+import s3_evaluate_threshold_clustering as tc
 from utils import save_images_with_bboxes
 
 class ImageDiscoveryThread(QtCore.QThread):
@@ -78,7 +81,10 @@ class ClusteringThread(QtCore.QThread):
     def run(self):
         fe = FeatureExtractor(self.csv_files, './data/program_data', torch.device('cuda:0'), margin=10)
         features_files = fe.extract_features(pbar_emit_signal=lambda v: self.pbar_sig.emit(self.obj, 2, v))
-        clusters = cluster_faces(features_files[0], None)
+        clusters = tc.main(features_files[0], None)
+        # kgraph.main(features_files[0], None, 'ball_tree', './data/program_data/main_knn_graph.npy')
+        # clusters = gcn.main(features_files[0], './data/program_data/main_knn_graph.npy', 'nothing', './trained_models/gcn.ckpt')
+        self.pbar_sig.emit(self.obj, 3, 1000)
         save_images_with_bboxes(clusters, self.csv_files[0], './output', pbar_emit_signal=lambda v: self.pbar_sig.emit(self.obj, 4, v))
         self.show_sig.emit(self.obj, QFrame, 'cluster-faces', 'hide')
         self.finish.emit(self.obj, [1, 2])

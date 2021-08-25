@@ -7,7 +7,7 @@ from sklearn.metrics import normalized_mutual_info_score
 
 def main(features_path, labels_path):
     features = np.load(features_path)
-    ac = AgglomerativeClustering(n_clusters=None, distance_threshold=1.1, compute_full_tree=True, linkage='single')
+    ac = AgglomerativeClustering(n_clusters=None, distance_threshold=1.1, compute_full_tree=True, linkage='average')
     tick = time.time()
     clusters = ac.fit(features)
     tock = time.time()
@@ -22,6 +22,7 @@ def main(features_path, labels_path):
     else:
         print('Predicted labels: ')
         print('\t{}'.format(clusters.labels_))
+    return clusters.labels_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='How to evaluate threshold clustering algorithm')

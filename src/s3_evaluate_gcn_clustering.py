@@ -44,23 +44,24 @@ def single_remove(Y, pred):
     remain_idcs = np.asarray(remain_idcs)
     return Y[remain_idcs], pred[remain_idcs]
 
-def main(args):
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+
+def main(val_feat_path, val_knn_graph_path, val_label_path, checkpoint):
+    np.random.seed(1)
+    torch.manual_seed(1)
     cudnn.benchmark = True
     
-    valset = Feeder(args.val_feat_path,
-                    args.val_knn_graph_path,
-                    args.val_label_path,
-                    args.seed,
-                    args.k_at_hop,
-                    args.active_connection, 
+    valset = Feeder(val_feat_path,
+                    val_knn_graph_path,
+                    val_label_path,
+                    1,
+                    [5,5],
+                    5, 
                     train=False)
     valloader = DataLoader(
-            valset, batch_size=args.batch_size,
-            num_workers=args.workers, shuffle=False, pin_memory=True)
+            valset, batch_size=32,
+            num_workers=16, shuffle=False, pin_memory=True)
 
-    ckpt = load_checkpoint(args.checkpoint)
+    ckpt = load_checkpoint(checkpoint)
     net = mdl.gcn()
     net.load_state_dict(ckpt['state_dict'])
     net = net.cuda()
@@ -126,8 +127,6 @@ def validate(loader, net, crit):
     edges = list()
     scores = list()
     for i, ((feat, adj, cid, h1id, node_list), gtmat) in enumerate(loader):
-        print(feat.shape)
-        print(adj.shape)
         data_time.update(time.time() - end)
         feat, adj, cid, h1id, gtmat = map(lambda x: x.cuda(), 
                                 (feat, adj, cid, h1id, gtmat))
@@ -144,7 +143,7 @@ def validate(loader, net, crit):
     
         batch_time.update(time.time()- end)
         end = time.time()
-        if i % args.print_freq == 0:
+        if i % 40 == 0:
             print('[{0}/{1}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
@@ -165,7 +164,7 @@ def validate(loader, net, crit):
             for j,n in enumerate(h1id[b]):
                 n = n.item()
                 edges.append([nl[cidb], nl[n]])
-                scores.append(pred[b*args.k_at_hop[0]+j,1].item())
+                scores.append(pred[b*5+j,1].item())
     edges = np.asarray(edges)
     scores = np.asarray(scores)
     return edges, scores
@@ -208,6 +207,6 @@ if __name__ == '__main__':
     # Test args
     parser.add_argument('--checkpoint', type=str, metavar='PATH', default='./logs/logs/best.ckpt')
     args = parser.parse_args()
-    preds = main(args)
+    preds = main(args.val_feat_path, args.val_knn_graph_path, args.val_label_path, args.checkpoint)
 
-    save_images_with_bboxes(preds, './data/program_data/bounding_boxes_1_30_.csv', './output', None)
+    save_images_with_bboxes(preds, './data/program_data/bounding_boxes_1_64_.csv', './output', None)
